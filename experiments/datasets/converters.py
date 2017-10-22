@@ -19,6 +19,3 @@ def date_converter (input):
             pass
 
     raise ValueError("%s is not in a valid format" % input)
-
-def decimal_converter (input) :
-    pass

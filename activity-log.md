@@ -17,4 +17,9 @@ Started working on preprocessing the dogs dataset.
   **Note:** this means that if the entirety of the "Date of death" column uses American date formats, then whoever transcribed "Survival time" read the wrong value for every date that can be also read as European. (Our program only interprets dates with the American format if they can't be understood as European)
   - No inconsistencies found for *cardiac arrest death -> death* and the *Therapy category* value
 * Tried out Sklearn SVR module with matplotlib in `Sklearn` notebook.
-* Created `Dataset Analysis` notebook
+* Created `Dataset Analysis` notebook.
+
+## 22nd October 2017
+* Conducted first exploratory analysis of the dogs dataset in `Dataset Analysis` notebook.
+  - The only visible correlations with *Survival time* detected were with *Age* and *Asx/ao* (and in minor proportion *FE %*)
+* Tried out various SV regressions in `Dataset Analysis` notebook, all with awful scores.
