@@ -7,7 +7,7 @@ from . import converters;
 from sklearn.datasets.base import Bunch
 
 #Load dataframe
-def load_df_dogs_2016(dropNA = False, dropColumns = []):
+def load_df_dogs_2016(dropNA = False, dropColumns = [], fixErrors = True):
     module_path = dirname(__file__)
     data = pd.read_excel(module_path + "/data/dogs.xlsx",
                          spreadsheet="2006-2016",
@@ -69,18 +69,10 @@ def load_df_dogs_2016(dropNA = False, dropColumns = []):
 
         row = data.iloc[i, :]
 
-        #Swap first visit and survival time if inconsistent
-        #if not row["Data 1° visita"] <= row["Inizio terapia"]:
-        #    swap = row["Data 1° visita"]
-        #    data.set_value(i, "Data 1° visita", row["Inizio terapia"])
-        #    data.set_value(i, "Inizio terapia", swap)
-
-        #row = data.iloc[i, :]
-
-        #Delete row with incorrect survival time
-        #if not (row["Data morte"] - row["Inizio terapia"]).days == row["Giorni sopravvissuto"]:
-        #    deleteList.append(i)
-        #    continue
+        if fixErrors:
+            #Fix incorrect survival time
+            if (row["Date of death"] - row["First visit"]).days != row["Survival time"]:
+                data.set_value(i, "Survival time", (row["Date of death"] - row["First visit"]).days)
 
         for attr in timeCols:
             data.set_value(i, attr, time.mktime(row[attr].timetuple()))

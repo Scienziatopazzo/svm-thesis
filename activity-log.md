@@ -1,5 +1,8 @@
 # SVMRegression - Research Activity Log
 
+## 23rd October 2017
+* Added attribute *fixErrors* to *load_df_dogs_2016* in `dogs_2006_2016.py`, for fixing the one wrong *Survival time* value in the dataset.
+
 ## 22nd October 2017
 * Conducted first exploratory analysis of the dogs dataset in `Dataset Analysis` notebook.
   - The only visible correlations with *Survival time* detected were with *Age* and *Asx/ao* (and in minor proportion *FE %*)
