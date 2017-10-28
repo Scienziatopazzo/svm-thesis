@@ -1,7 +1,23 @@
 # SVMRegression - Research Activity Log
 
+## 28th October 2017
+* Introduced filling of NA values, using differente policies:
+  - *mean* -  Using the mean of the feature.
+  - *normal* - Generating values from a normal distribution modeled after the feature (checked approximate normality with a qqplot beforehand).
+  - **TODO:** Using values predicted from a model (eg. linear regression) trained with correlated features.
+* Introduced primitive methods for dealing with the right-censoring in *Survival time*:
+  - *drop* - just drop all data for which *Dead*==0.
+  - *max* - when *Dead*==0, replace all *Survival time* values with the maximum Survival time of data for which *Dead*==1.
+
+Combining the *normal* NA policy with *drop* censoring policy an SVR with grid search was able to obtain a slightly positive score, although not stable.
+
+## 25th October 2017
+* New information about the dataset:
+  - Obtained description of *isachc* scale. *C* means that the dog was only classified with the newer scale, so it's equivalent to *NA*. As suggested, the feature was deemed probably irrelevant.
+  - Resolved issue posed by the fact that all dogs had a death date, even alive ones. The death date is in fact right-censored for dogs that were last recorded as alive.
+
 ## 23rd October 2017
-* Added attribute *fixErrors* to *load_df_dogs_2016* in `dogs_2006_2016.py`, for fixing the one wrong *Survival time* value in the dataset.
+Added attribute *fixErrors* to *load_df_dogs_2016* in `dogs_2006_2016.py`, for fixing the one wrong *Survival time* value in the dataset.
 
 ## 22nd October 2017
 * Conducted first exploratory analysis of the dogs dataset in `Dataset Analysis` notebook.

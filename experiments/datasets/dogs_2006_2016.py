@@ -7,7 +7,7 @@ from . import converters;
 from sklearn.datasets.base import Bunch
 
 #Load dataframe
-def load_df_dogs_2016(dropNA = False, dropColumns = [], fixErrors = True):
+def load_df_dogs_2016(NApolicy = 'none', dropColumns = [], fixErrors = True, censoringPolicy = 'none'):
     module_path = dirname(__file__)
     data = pd.read_excel(module_path + "/data/dogs.xlsx",
                          spreadsheet="2006-2016",
@@ -60,7 +60,6 @@ def load_df_dogs_2016(dropNA = False, dropColumns = [], fixErrors = True):
                         }, inplace=True)
 
     timeCols = ["Birth date", "First visit", "Therapy started", "Date of death"]
-    deleteList = []
 
     for i, row in data.iterrows():
         #Use the same date format
@@ -77,28 +76,48 @@ def load_df_dogs_2016(dropNA = False, dropColumns = [], fixErrors = True):
         for attr in timeCols:
             data.set_value(i, attr, time.mktime(row[attr].timetuple()))
 
-    #Delete rows set for deletion
-    data.drop(deleteList, inplace=True)
+    #Censoring policies
+    #drop censored rows
+    if censoringPolicy=='drop':
+        data.drop(data[data["Dead"]==0].index, inplace=True)
+    #substitute survtime with max survtime of dead subjects
+    elif censoringPolicy=='max':
+        survmax = data["Survival time"][data["Dead"]==1].max()
+        for i, row in data.iterrows():
+            if row["Dead"]==0:
+                data.set_value(i, "Survival time", survmax)
 
     #Delete useless columns
     data.drop(dropColumns, axis="columns", inplace=True)
 
-    #Delete NA
-    if dropNA:
+    #NA policies
+    #drop
+    if NApolicy=='drop':
         data.dropna(axis=0, how='any', inplace=True)
+    #Fill NA with mean value of feature
+    elif NApolicy=='mean':
+        means = {nacol:data[nacol].mean() for nacol in data.columns[data.isnull().any()].tolist()}
+        data.fillna(value=means, inplace=True)
+    #Fill NA with generated normal values
+    elif NApolicy=='normal':
+        params = {nacol:(data[nacol].mean(),data[nacol].std()) for nacol in data.columns[data.isnull().any()].tolist()}
+        for i, row in data.iterrows():
+            for nacol in params.keys():
+                if pd.isnull(row[nacol]):
+                    data.set_value(i, nacol, np.random.normal(loc=params[nacol][0], scale=params[nacol][1]))
 
     return data
 
 #default drop columns
 dropNonNumeric = ["Folder", "isachc", "Class"]
-dropIrrelevant = ["IP", "Dead", "MC", "Furosemide", "Ache-i", "Pimobendan", "Spironolattone"]
+dropIrrelevant = ["IP", "Furosemide", "Ache-i", "Pimobendan", "Spironolattone"]
+dropDead = ["Dead", "MC"]
 dropDates = ["Birth date", "First visit", "Therapy started", "Date of death"]
 
 #load sklearn Bunch object with Survival time as target
-def load_skl_dogs_2016(NApolicy='drop', dropColumns=dropNonNumeric+dropIrrelevant+dropDates, scaler=None):
+def load_skl_dogs_2016(NApolicy='drop', dropColumns=dropNonNumeric+dropIrrelevant+dropDead+dropDates, censoringPolicy='none', scaler=None):
 
-    napolicies = {'drop':True}
-    data = load_df_dogs_2016(dropNA = napolicies[NApolicy], dropColumns = dropColumns)
+    data = load_df_dogs_2016(NApolicy = NApolicy, dropColumns = dropColumns, censoringPolicy=censoringPolicy)
 
     #Target column
     targetArray = data.loc[:, "Survival time"].as_matrix()
