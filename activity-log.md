@@ -1,11 +1,19 @@
 # SVMRegression - Research Activity Log
 
+## 29th October 2017
+* Added `Preprocessing` check for *Age*. When computing age as *(death-birth)* almost all values were erroneous. When doing it as *(firstvisit-birth)* (age at the first visit) most values were correct but there were still 50 errors. The origin of the errors is unclear, as many erroneous values appear to have no relation with the provided dates.
+* Created notebook `Feature engineering`:
+  - Added new feature *Therapy to visit*, a time delta in days from the beginning of the therapy to the first visit. (By adding this measure to *Survival time* it is possible to obtain a survival time from the beginning of the therapy, thus fulfilling the objective of 21/10/17).
+  - Tried out removal of highly correlated features in various combinations.
+  - Explored the relationship between *IP Gravity* and *Vrig Tric* when both values are different from 0. IP Gravity is just a discretization of Vrig Tric, so there's no point in using both.
+* Reviewed k-fold cross-validation. Started using more folds as using 2 was clearly bad practice. Benefits of using holdout over it (as instructed) are unclear.
+
 ## 28th October 2017
-* Introduced filling of NA values, using differente policies:
+* Introduced filling of NA values in notebook `NA fill`, using different policies:
   - *mean* -  Using the mean of the feature.
   - *normal* - Generating values from a normal distribution modeled after the feature (checked approximate normality with a qqplot beforehand).
   - **TODO:** Using values predicted from a model (eg. linear regression) trained with correlated features.
-* Introduced primitive methods for dealing with the right-censoring in *Survival time*:
+* Introduced primitive methods for dealing with the right-censoring in *Survival time* in notebook `Censoring`:
   - *drop* - just drop all data for which *Dead*==0.
   - *max* - when *Dead*==0, replace all *Survival time* values with the maximum Survival time of data for which *Dead*==1.
 

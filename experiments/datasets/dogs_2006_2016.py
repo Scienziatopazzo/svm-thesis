@@ -7,7 +7,7 @@ from . import converters;
 from sklearn.datasets.base import Bunch
 
 #Load dataframe
-def load_df_dogs_2016(NApolicy = 'none', dropColumns = [], fixErrors = True, censoringPolicy = 'none'):
+def load_df_dogs_2016(NApolicy = 'none', dropColumns = [], fixErrors = True, censoringPolicy = 'none', newFeats = True):
     module_path = dirname(__file__)
     data = pd.read_excel(module_path + "/data/dogs.xlsx",
                          spreadsheet="2006-2016",
@@ -61,6 +61,9 @@ def load_df_dogs_2016(NApolicy = 'none', dropColumns = [], fixErrors = True, cen
 
     timeCols = ["Birth date", "First visit", "Therapy started", "Date of death"]
 
+    #Setting up new column "Therapy to visit", a time delta in days
+    thertovisit = pd.Series()
+
     for i, row in data.iterrows():
         #Use the same date format
         for attr in timeCols:
@@ -73,8 +76,16 @@ def load_df_dogs_2016(NApolicy = 'none', dropColumns = [], fixErrors = True, cen
             if (row["Date of death"] - row["First visit"]).days != row["Survival time"]:
                 data.set_value(i, "Survival time", (row["Date of death"] - row["First visit"]).days)
 
+        row = data.iloc[i, :]
+        #Compute "Therapy to visit"
+        thertovisit.set_value(i, (row["First visit"] - row["Therapy started"]).days)
+
         for attr in timeCols:
             data.set_value(i, attr, time.mktime(row[attr].timetuple()))
+
+    if newFeats:
+        #add "Therapy to visit" feature to the dataset
+        data["Therapy to visit"] = thertovisit
 
     #Censoring policies
     #drop censored rows
@@ -115,9 +126,9 @@ dropDead = ["Dead", "MC"]
 dropDates = ["Birth date", "First visit", "Therapy started", "Date of death"]
 
 #load sklearn Bunch object with Survival time as target
-def load_skl_dogs_2016(NApolicy='drop', dropColumns=dropNonNumeric+dropIrrelevant+dropDead+dropDates, censoringPolicy='none', scaler=None):
+def load_skl_dogs_2016(NApolicy='drop', dropColumns=dropNonNumeric+dropIrrelevant+dropDead+dropDates, censoringPolicy='none', newFeats=True, scaler=None):
 
-    data = load_df_dogs_2016(NApolicy = NApolicy, dropColumns = dropColumns, censoringPolicy=censoringPolicy)
+    data = load_df_dogs_2016(NApolicy = NApolicy, dropColumns = dropColumns, censoringPolicy=censoringPolicy, newFeats=newFeats)
 
     #Target column
     targetArray = data.loc[:, "Survival time"].as_matrix()
