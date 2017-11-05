@@ -1,5 +1,8 @@
 # SVMRegression - Research Activity Log
 
+## 5th November 2017
+* Updated `dogs_2006_2016.py`, removing uses of deprecated pandas method *set_value*.
+
 ## 29th October 2017
 * Added `Preprocessing` check for *Age*. When computing age as *(death-birth)* almost all values were erroneous. When doing it as *(firstvisit-birth)* (age at the first visit) most values were correct but there were still 50 errors. The origin of the errors is unclear, as many erroneous values appear to have no relation with the provided dates.
 * Created notebook `Feature engineering`:

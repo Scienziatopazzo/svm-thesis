@@ -62,30 +62,30 @@ def load_df_dogs_2016(NApolicy = 'none', dropColumns = [], fixErrors = True, cen
     timeCols = ["Birth date", "First visit", "Therapy started", "Date of death"]
 
     #Setting up new column "Therapy to visit", a time delta in days
-    thertovisit = pd.Series()
+    thertovisit = []
 
     for i, row in data.iterrows():
         #Use the same date format
         for attr in timeCols:
-            data.set_value(i, attr, converters.date_converter(row[attr]))
+            data.iloc[i, data.columns.get_loc(attr)] = converters.date_converter(row[attr])
 
         row = data.iloc[i, :]
 
         if fixErrors:
             #Fix incorrect survival time
             if (row["Date of death"] - row["First visit"]).days != row["Survival time"]:
-                data.set_value(i, "Survival time", (row["Date of death"] - row["First visit"]).days)
+                data.iloc[i, data.columns.get_loc("Survival time") ] = (row["Date of death"] - row["First visit"]).days
 
         row = data.iloc[i, :]
         #Compute "Therapy to visit"
-        thertovisit.set_value(i, (row["First visit"] - row["Therapy started"]).days)
+        thertovisit.append((row["First visit"] - row["Therapy started"]).days)
 
         for attr in timeCols:
-            data.set_value(i, attr, time.mktime(row[attr].timetuple()))
+            data.iloc[i, data.columns.get_loc(attr)] =  time.mktime(row[attr].timetuple())
 
     if newFeats:
         #add "Therapy to visit" feature to the dataset
-        data["Therapy to visit"] = thertovisit
+        data["Therapy to visit"] = pd.Series(thertovisit)
 
     #Censoring policies
     #drop censored rows
