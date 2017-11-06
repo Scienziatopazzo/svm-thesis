@@ -1,5 +1,8 @@
 # SVMRegression - Research Activity Log
 
+## 6th November 2017
+* Created `training` script with an implementation of *Holdout grid search*, together with the `Repeated Holdout` notebook. First experiments yielded negative results.
+
 ## 5th November 2017
 * Updated `dogs_2006_2016.py`, removing uses of deprecated pandas method *set_value*.
 
