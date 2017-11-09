@@ -1,5 +1,9 @@
 # SVMRegression - Research Activity Log
 
+## 9th Nobember 2017
+* Read *Van Belle et al, Support vector methods for survival analysis: a comparison between ranking and regression approaches*.
+* Did 10 trials of holdout using both censoring policies in the `Repeated Holdout` notebook, then tested SVRs with the obtained hyperparameters. All with negative results.
+
 ## 6th November 2017
 * Created `training` script with an implementation of *Holdout grid search*, together with the `Repeated Holdout` notebook. First experiments yielded negative results.
 
