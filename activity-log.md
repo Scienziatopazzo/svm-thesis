@@ -1,5 +1,8 @@
 # SVMRegression - Research Activity Log
 
+## 12th November 2017
+Set up *Gurobi* and `gurobipy` and started experimenting with the solver, with the eventual goal of developing a modifiable SVM module and implementing the changes useful for dealing with censored data as described in *Van Belle et al*.
+
 ## 9th Nobember 2017
 * Read *Van Belle et al, Support vector methods for survival analysis: a comparison between ranking and regression approaches*.
 * Did 10 trials of holdout using both censoring policies in the `Repeated Holdout` notebook, then tested SVRs with the obtained hyperparameters. All with negative results.
