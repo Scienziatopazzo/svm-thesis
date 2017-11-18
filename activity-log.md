@@ -1,5 +1,8 @@
 # SVMRegression - Research Activity Log
 
+## 18th November 2017
+Started working on first draft of thesis material in latex.
+
 ## 12th November 2017
 Set up *Gurobi* and `gurobipy` and started experimenting with the solver, with the eventual goal of developing a modifiable SVM module and implementing the changes useful for dealing with censored data as described in *Van Belle et al*.
 

@@ -1,0 +1,130 @@
+%
+% Tesi D.S.I. - modello preso da
+% Stanford University PhD thesis style -- modifications to the report style
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%                                                                         %
+%			TESI DOTTORATO                                                   %
+%			______________                                                   %
+%                                                                         %
+%			AUTORE: Elena Pagani                                             %
+%                                                                         %
+%			Ultima revisione: 7.X.1998                                       %
+%                                                                         %
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+%
+\documentclass[12pt]{report}
+%    \renewcommand{\baselinestretch}{1.6}      % interline spacing
+%
+% \includeonly{}
+%
+%			PREAMBOLO
+%
+\usepackage[a4paper]{geometry}
+\usepackage{amssymb,amsmath,amsthm}
+\usepackage{graphicx}
+\usepackage{url}
+\usepackage{hyperref}
+\usepackage{epsfig}
+\usepackage[english]{babel}
+\usepackage{tesi}
+
+% per le accentate
+\usepackage[utf8]{inputenc}
+%
+\newtheorem{myteor}{Teorema}[section]
+%
+\newenvironment{teor}{\begin{myteor}\sl}{\end{myteor}}
+%
+%
+%			TITOLO
+%
+\begin{document}
+\title{SV-based regression techniques for survival analysis: a case study on veterinary data}
+\author{Elvis NAVA}
+\dept{Corso di Laurea in Informatica} 
+\anno{2017-2018}
+\matricola{870234}
+\relatore{Dario MALCHIODI}
+\correlatore{Anna Maria ZANABONI}
+%
+%        \submitdate{month year in which submitted to GPO}
+%		- date LaTeX'd if omitted
+%	\copyrightyear{year degree conferred (next year if submitted in Dec.)}
+%		- year LaTeX'd (or next year, in December) if omitted
+%	\copyrighttrue or \copyrightfalse
+%		- produce or don't produce a copyright page (false by default)
+%	\figurespagetrue or \figurespagefalse
+%		- produce or don't produce a List of Figures page
+%		  (false by default)
+%	\tablespagetrue or \tablespagefalse
+%		- produce or don't produce a List of Tables page
+%		  (false by default)
+% 
+%			DEDICA
+%
+\beforepreface
+\prefacesection{}
+        {\hfill \Large {\sl dedicated to \dots}}
+% 
+%			PREFAZIONE
+%
+\prefacesection{Preface}
+This is a preface.
+%
+%
+%			ORGANIZZAZIONE
+\section*{Thesis Structure}
+\label{structure}
+The thesis is structured as follows:
+\begin{itemize}
+\item in Chapter 1 ....
+\end{itemize}
+%
+%			RINGRAZIAMENTI
+%
+%\prefacesection{Acknowledgments}
+%asdjhgftry.
+%\afterpreface
+% 
+
+\chapter*{Introduction}
+\label{intro}
+Thesis introduction.
+
+% 
+%
+\chapter{Support Vector Machines for Regression}
+\label{ch1}
+
+\chapter{Dataset Preprocessing}
+\label{ch2}
+Before any meaningful data analysis can be carried out, it's important to apply to the raw dataset the measures necessary for it to be checked for consistency and to become suitable for processing. This kind of work, called \textit{Preprocessing}, is paramount to successful analysis of real world data, such as the veterinary dataset subject of this thesis.
+
+\section*{Consistency Checks}
+The \texttt{dogs\_2006\_2016} dataset was provided as part of a .xlsx sheet without any in-built formulas, so it was deemed sensible to try a number of consistency checks on dependent features, such as dates and times.
+\subsection*{Dates consistency}
+The first check involved testing the validity of the inequality $ Birth date \leq First visit \leq Therapy started \leq Date of death $. After this check produced 42 errors, all from data points for which $ Therapy started < First visit $, while in all others the two values were equal, it became clear that the inequality correspondent to the correct interpretation of the data is in fact $ Birth date \leq Therapy started \leq First visit \leq Date of death $. \textit{Therapy started} is equal to \textit{First visit} when the therapy was initiated during the first visit, while it is an earlier date if the dog was already undergoing therapy under different supervision.
+\subsection*{Survival time consistency}
+A check of the \textit{Survival time} as calculated from \textit{First visit} to \textit{Date of death} revealed only one erroneous data point, with an error delta of exactly one year. Since the value was supposedly obtained automatically, the origin of this error is unclear. A decision was made to fix this error in all future analyses by default by using the value obtained from the dates.
+\subsection*{Cardiac arrest and death}
+A check was performed on whether the dataset is consistent with regard to the implication $ CardiacDeath \rightarrow Dead $, although for the purpose of this work any information related to the dog's death such as cardiac arrest cannot be included in the actual prediction models. The check was anyways passed with no reported inconsistencies.
+\subsection*{Therapy category}
+
+
+%
+%			BIBLIOGRAFIA
+%
+\begin{thebibliography}{00}
+%
+\bibitem{itemexample}
+Example citation.
+
+%
+\end{thebibliography}
+% 
+\end{document}
+
+
+ 
