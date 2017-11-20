@@ -1,5 +1,8 @@
 # SVMRegression - Research Activity Log
 
+## 20th November 2017
+Continued work on thesis draft, reached "Censoring policies" in the "Preprocessing and exploration" section.
+
 ## 18th November 2017
 Started working on first draft of thesis material in latex.
 

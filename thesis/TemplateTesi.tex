@@ -98,11 +98,11 @@ Thesis introduction.
 \chapter{Support Vector Machines for Regression}
 \label{ch1}
 
-\chapter{Dataset Preprocessing}
+\chapter{Dataset Preprocessing and Exploration}
 \label{ch2}
 Before any meaningful data analysis can be carried out, it's important to apply to the raw dataset the measures necessary for it to be checked for consistency and to become suitable for processing. This kind of work, called \textit{Preprocessing}, is paramount to successful analysis of real world data, such as the veterinary dataset subject of this thesis.
 
-\section*{Consistency Checks}
+\section{Consistency Checks}
 The \texttt{dogs\_2006\_2016} dataset was provided as part of a .xlsx sheet without any in-built formulas, so it was deemed sensible to try a number of consistency checks on dependent features, such as dates and times.
 \subsection*{Dates consistency}
 The first check involved testing the validity of the inequality $ Birth date \leq First visit \leq Therapy started \leq Date of death $. After this check produced 42 errors, all from data points for which $ Therapy started < First visit $, while in all others the two values were equal, it became clear that the inequality correspondent to the correct interpretation of the data is in fact $ Birth date \leq Therapy started \leq First visit \leq Date of death $. \textit{Therapy started} is equal to \textit{First visit} when the therapy was initiated during the first visit, while it is an earlier date if the dog was already undergoing therapy under different supervision.
@@ -111,7 +111,39 @@ A check of the \textit{Survival time} as calculated from \textit{First visit} to
 \subsection*{Cardiac arrest and death}
 A check was performed on whether the dataset is consistent with regard to the implication $ CardiacDeath \rightarrow Dead $, although for the purpose of this work any information related to the dog's death such as cardiac arrest cannot be included in the actual prediction models. The check was anyways passed with no reported inconsistencies.
 \subsection*{Therapy category}
+The \textit{Therapy category} feature was supposedly calculated as the sum of various binary features, each representing a pharmaceutical prescription. A check was made to ensure its correctness and no errors were reported.
+\subsection*{Age}
+TODO: ages problem, many errors (50+).
 
+\section{Exploratory Analysis}
+After the first checks necessary to assess data consistency, the dataset was further inspected with some of the tools of exploratory analysis. The insights obtained with this techniques can prove useful for tasks like feature selection and normalization.
+\subsection*{Feature correlation}
+A correlation heatmap of the available features was used to highlight eventual dependencies among them. In particular, these are the groups of highly correlated features in the raw dataset:
+\begin{itemize}
+\item \textit{IP Gravity} and \textit{Vrig tric}: a successive test confirmed that the first in indeed a discretization of the second
+\item \textit{Dead} and \textit{MC} (Cardiac arrest death)
+\item \textit{FE \%} and \textit{FS \%}
+\item \textit{EDVI}, \textit{ESVI}, \textit{Allo diast} and \textit{Allo sist} (especially \textit{EDVI} with \textit{Allo diast} and \textit{ESVI} with \textit{Allo sist})
+\end{itemize}
+\subsection*{Scatter plots with \textit{Survival time} and other features}
+\textit{Survival time} was plotted against all the other features. No obvious patterns were found, except for a slight correlation with \textit{Age} and \textit{Asx/ao}.
+
+\section{Handling missing data}
+The \texttt{dogs\_2006\_2016} dataset, as is the case with most real world data, contains NA (Not Available) values that need to be handled in some way before being used as input for model training. A number of policies were experimented with in dealing with this problem:
+\begin{itemize}
+\item \textbf{Dropping NA values}: Simply deleting all data points that include NA values in any feature field. Does not introduce potentially spurious information, but effectively reduces the dataset's size.
+\item \textbf{Using the mean value}: Filling any NA value with the mean value of all data points for that particular feature. Maintains the dataset's size but alters the distributions of features with a sufficient number of NA values.
+\item \textbf{Sampling from a normal distribution}: Randomly generating values from normal distributions that approximate the features' distributions. Maintains the dataset's size and feature distributions, but introduces an element of randomness in the analysis. Before applying this technique it's important to verify the normality of the affected features using a tool like a qqplot.
+\item \textbf{Using values predicted from a model (eg. Linear Regression)}: TODO
+\end{itemize}
+
+\section{Handling censored data}
+A crucial problem in survival analysis is that of data censoring: in this case the \textit{Survival time} feature is right-censored for observations for which the subject is registered as alive. This means that the reported survival time is just the smallest possible value for the feature, while the real time is unknown, either because the subject left care before dying or because it's still alive.
+
+This problem merits more discussion later in this thesis and is of inspiration for a modification of the standard Support Vector Machine model, but some elementary techniques can be applied even at this stage of analysis. These are in particular:
+\begin{itemize}
+\item \textbf{Drop censored values}: Simply deleting all data points for dogs that have not yet died. Removes the need to handle censoring in the analysis, but deletes important information at the same time. \item \textbf{Using the maximum non-censored value}: Finding the maximum \textit{Survival time} value for dogs that did die and substituting that in the place of all cesored values. It's a rudimentary way of letting alive subjects positively influence survival time prediction, as their value is artificially set at the maximum in the resulting dataset.
+\end{itemize}
 
 %
 %			BIBLIOGRAFIA
