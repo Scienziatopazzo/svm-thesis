@@ -1,0 +1,163 @@
+%
+% Tesi D.S.I. - modello preso da
+% Stanford University PhD thesis style -- modifications to the report style
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%                                                                         %
+%			TESI DOTTORATO                                                   %
+%			______________                                                   %
+%                                                                         %
+%			AUTORE: Elena Pagani                                             %
+%                                                                         %
+%			Ultima revisione: 7.X.1998                                       %
+%                                                                         %
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+%
+\documentclass[12pt]{report}
+%    \renewcommand{\baselinestretch}{1.6}      % interline spacing
+%
+% \includeonly{}
+%
+%			PREAMBOLO
+%
+\usepackage[a4paper]{geometry}
+\usepackage{amssymb,amsmath,amsthm}
+\usepackage{graphicx}
+\usepackage{url}
+\usepackage{hyperref}
+\usepackage{epsfig}
+\usepackage[english]{babel}
+\usepackage{tesi}
+
+% per le accentate
+\usepackage[utf8]{inputenc}
+%
+\newtheorem{myteor}{Teorema}[section]
+%
+\newenvironment{teor}{\begin{myteor}\sl}{\end{myteor}}
+%
+%
+%			TITOLO
+%
+\begin{document}
+\title{SV-based regression techniques for survival analysis: a case study on veterinary data}
+\author{Elvis NAVA}
+\dept{Corso di Laurea in Informatica} 
+\anno{2017-2018}
+\matricola{870234}
+\relatore{Dario MALCHIODI}
+\correlatore{Anna Maria ZANABONI}
+%
+%        \submitdate{month year in which submitted to GPO}
+%		- date LaTeX'd if omitted
+%	\copyrightyear{year degree conferred (next year if submitted in Dec.)}
+%		- year LaTeX'd (or next year, in December) if omitted
+%	\copyrighttrue or \copyrightfalse
+%		- produce or don't produce a copyright page (false by default)
+%	\figurespagetrue or \figurespagefalse
+%		- produce or don't produce a List of Figures page
+%		  (false by default)
+%	\tablespagetrue or \tablespagefalse
+%		- produce or don't produce a List of Tables page
+%		  (false by default)
+% 
+%			DEDICA
+%
+\beforepreface
+\prefacesection{}
+        {\hfill \Large {\sl dedicated to \dots}}
+% 
+%			PREFAZIONE
+%
+\prefacesection{Preface}
+This is a preface.
+%
+%
+%			ORGANIZZAZIONE
+\section*{Thesis Structure}
+\label{structure}
+The thesis is structured as follows:
+\begin{itemize}
+\item in Chapter 1 ....
+\end{itemize}
+%
+%			RINGRAZIAMENTI
+%
+%\prefacesection{Acknowledgments}
+%asdjhgftry.
+%\afterpreface
+% 
+
+\chapter*{Introduction}
+\label{intro}
+Thesis introduction.
+
+% 
+%
+\chapter{Support Vector Machines for Regression}
+\label{ch1}
+
+\chapter{Dataset Preprocessing and Exploration}
+\label{ch2}
+Before any meaningful analysis can be carried out, it's important to apply a consistency check to the raw dataset, so that it becomes suitable for processing. This kind of work, called \textit{preprocessing}, is paramount to successful analysis of real world data, such as the veterinary dataset subject of this thesis.
+
+\section{Consistency Check}
+The \texttt{dogs\_2006\_2016} dataset was provided as part of a .xlsx sheet without any in-built formulas, so it was deemed sensible to try a number of consistency checks on dependent features, such as dates and times.
+\subsection*{Date consistency}
+The first check involved testing the validity of the inequality $ Birth\; date \leq First\; visit \leq Therapy\; started \leq Date\; of\; death $. This check produced 42 errors, all from data points for which $ Therapy\; started < First\; visit $, while in all the remaining cases the two values were equal. Then it became clear that the correct interpretation of the data corresponds in fact to the inequality $ Birth\; date \leq Therapy\; started \leq First\; visit \leq Date\; of\; death $. \textit{Therapy started} is equal to \textit{First visit} when the therapy started on the first visit, while it is set to an earlier date if the dog was already undergoing therapy under different supervision.
+\subsection*{Survival time consistency}
+A check of the \textit{Survival time} as calculated from \textit{First visit} to \textit{Date of death} revealed only one erroneous data point, with an error delta of exactly one year. Since the value was supposedly obtained automatically, the origin of this error is unclear. A decision was made to fix this error in all future analyses by using by default the value obtained from the dates.
+\subsection*{Cardiac arrest and death}
+A check was performed on whether or not the dataset is consistent with regard to the implication $ CardiacDeath \rightarrow Dead $, although for the purpose of this work any information related to the dog's death such as a cardiac arrest must not be included in the actual prediction models. The check was anyways passed with no reported inconsistencies.
+\subsection*{Therapy category}
+The \textit{Therapy category} feature was supposedly calculated as the sum of various binary features, each representing a pharmaceutical prescription. A check was made to ensure its correctness and no errors were reported.
+\subsection*{Age}
+TODO: ages problem, many errors (50+).
+
+\section{Exploratory Analysis}
+After the first checks necessary to assess data consistency, the dataset was further inspected using some exploratory analysis tools. The insights obtained with this techniques proved useful for subsequent tasks such as feature selection and normalization.
+\subsection*{Feature correlation}
+A correlation heatmap of the available features was used to highlight possible dependencies among them. In particular, Fig. XX shows that the following groups of features exhibit a relevant correlation:
+\begin{itemize}
+\item \textit{IP Gravity} and \textit{Vrig tric}: a subsequent test confirmed that the first feature is indeed a discretization of the second one;
+\item \textit{Dead} and \textit{MC} (Cardiac arrest death);
+\item \textit{FE \%} and \textit{FS \%};
+\item \textit{EDVI}, \textit{ESVI}, \textit{Allo diast} and \textit{Allo sist} (especially \textit{EDVI} with \textit{Allo diast} and \textit{ESVI} with \textit{Allo sist}).
+\end{itemize}
+\subsection*{Scatter plots with \textit{Survival time} and other features}
+\textit{Survival time} was plotted against all the other features. As shown in Fig. YY, no obvious patterns were found, except for a slight correlation between \textit{Age} and \textit{Asx/ao}.
+
+\section{Handling missing data}
+The considered dataset, as is the case with most real world data, contains NA (Not Available) values that need to be handled in some way before being used as input for model training. The following policies were experimented with in order to deal with this problem:
+\begin{itemize}
+\item \textbf{Dropping NA values}. This procedure consists in simply deleting all data points that include NA values in any feature field. It does not introduce potentially spurious information, but effectively reduces the dataset's size.
+\item \textbf{Using the mean value}. This procedure consists in filling any NA value with the mean value of all data points for the corresponding feature. It maintains the dataset's size but it might alter the distributions of features, especially when the number of NA values is high.
+\item \textbf{Sampling from a normal distribution}. This technique assumes a normal distribution for the involved features, and replaces NAs with values drawn from an approximation of such distributions. It maintains the dataset's size and feature distributions, but introduces an element of randomness in the analysis. Before applying this technique it's important to verify the normality of the affected features using a tool such as a QQ-plot.
+\item \textbf{Using values predicted from a model (e.g., Linear Regression)}: TODO
+\end{itemize}
+
+\section{Handling censored data}
+A crucial problem in survival analysis is that of data censoring: in this case the \textit{Survival time} feature is right-censored for observations for which the subject is registered as alive. This means that the reported survival time is just a lower bound, while the real time is unknown, either because the subject died after the last visit or because it's still alive.
+
+This problem, discussed more in depth later in this thesis, inspired a modification of the standard Support Vector Machine model. However, some elementary techniques can be applied even at this stage of analysis. Precisely, the following methodologies have been considered:
+\begin{itemize}
+\item \textbf{Drop censored values}: simply delete all data points for dogs that have not yet died. This technique removes the need to handle censoring in the analysis, but deletes important information at the same time.
+\item \textbf{Using the maximum non-censored value}: find the maximum \textit{Survival time} value for dogs that did die and substitute it to all censored values. This technique represents a rudimentary way of letting alive subjects positively influence survival time prediction, as their value is artificially set at the maximum in the resulting dataset.
+\end{itemize}
+
+%
+%			BIBLIOGRAFIA
+%
+\begin{thebibliography}{00}
+%
+\bibitem{itemexample}
+Example citation.
+
+%
+\end{thebibliography}
+% 
+\end{document}
+
+
+ 

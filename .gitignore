@@ -2,5 +2,9 @@ __pycache__
 .ipynb_checkpoints/
 .env
 env/
-.~lock*
-gurobi.log
+*.~lock*
+*.log
+*.aux
+*.out
+*.synctex.gz
+*.pdf
