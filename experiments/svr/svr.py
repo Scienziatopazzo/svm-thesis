@@ -86,7 +86,7 @@ class SVR:
     def kern_sum(self, x):
         ks = 0
         for i in range(len(self.sv)):
-            ks += self.sv_w[i] + self.k(self.sv[i], x)
+            ks += self.sv_w[i] * self.k(self.sv[i], x)
         return ks
 
     def hypothesis_f(self, x):

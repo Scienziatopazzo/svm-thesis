@@ -1,5 +1,8 @@
 # SVMRegression - Research Activity Log
 
+## 23rd March 2018
+Fixed a typo in `svr.py`, the SVR now performs very well.
+
 ## 22nd March 2018
 Implemented a first version of a custom SVM Regression with Gurobi in `svr.py`. Did first tests on new notebook `Custom SVR Tests`, the SVM seems to perform poorly. Need to determine causes.
 
