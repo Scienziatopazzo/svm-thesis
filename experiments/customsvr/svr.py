@@ -6,15 +6,21 @@ class SVR:
     '''
     Support Vector Machine Regression
     parameters:
-    float C         penalty parameter C (default=1.0)
-    float epsilon   parameter specifying no-penalty epsilon-tube (default=0.1)
-    string kernel   specifies the kernel type (default='linear')
-    bool verbose    enable verbose Gurobi output (default=False)
+    float C         Penalty parameter C. (default=1.0)
+    float epsilon   Parameter specifying no-penalty epsilon-tube. (default=0.1)
+    string kernel   Specifies the kernel type: 'linear', 'poly', 'rbf'. (default='rbf')
+    float gamma     Kernel coefficient for 'rbf' and 'poly'. If 'auto', then gamma=1/n_features. (default='auto')
+    int degree      Degree of the polynomial kernel 'poly', ignored by other kernels (default=3)
+    float coef0     Independent term in polynomial kernel 'poly', ignored by other kernels (default=0.0)
+    bool verbose    Enable verbose Gurobi output. (default=False)
     '''
-    def __init__(self, C=1.0, epsilon=0.1, kernel='linear', verbose=False):
+    def __init__(self, C=1.0, epsilon=0.1, kernel='rbf', gamma='auto', degree=3, coef0=0, verbose=False):
         self.C = C
         self.epsilon = epsilon
         self.kernel = kernel
+        self.gamma = gamma
+        self.degree = degree
+        self.coef0 = coef0
         self.verbose = verbose
 
         self.model = gpy.Model('SVR')
@@ -32,6 +38,13 @@ class SVR:
     def k(self, a, b):
         if self.kernel == 'linear':
             return np.dot(a, b)
+        elif self.kernel == 'poly':
+            g = self.gamma if self.gamma!='auto' else 1/len(a)
+            return (g*np.dot(a, b) + self.coef0)**self.degree
+        elif self.kernel == 'rbf':
+            g = self.gamma if self.gamma!='auto' else 1/len(a)
+            return math.exp(-g*(np.linalg.norm(a - b)**2))
+
 
     def fit(self, X, y):
         '''

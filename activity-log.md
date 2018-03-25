@@ -1,5 +1,10 @@
 # SVMRegression - Research Activity Log
 
+## 25th March 2018
+Implemented kernels in `svr.py` and nonlinear tests. Custom SVR consistently obtains the same scores of the Sklearn SVR in both linear and nonlinear tests.
+
+**Note:** with the polynomial kernel, using negative values for `coef0` returns a Gurobi error. These values were removed from the holdout search, since they were seemingly never chosen anyways. Even though not specified in the sklearn documentation, a brief research seems to point at negative `coef0` values being unallowed in general. Strangely, Sklearn doesn't misbehave when fed those values.
+
 ## 23rd March 2018
 Fixed a typo in `svr.py`, the SVR now performs very well.
 
