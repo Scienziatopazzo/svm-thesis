@@ -1,26 +1,5 @@
-%
-% Tesi D.S.I. - modello preso da
-% Stanford University PhD thesis style -- modifications to the report style
-%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%                                                                         %
-%			TESI DOTTORATO                                                   %
-%			______________                                                   %
-%                                                                         %
-%			AUTORE: Elena Pagani                                             %
-%                                                                         %
-%			Ultima revisione: 7.X.1998                                       %
-%                                                                         %
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%
-%
 \documentclass[12pt]{report}
-%    \renewcommand{\baselinestretch}{1.6}      % interline spacing
-%
-% \includeonly{}
-%
-%			PREAMBOLO
-%
+
 \usepackage[a4paper]{geometry}
 \usepackage{amssymb,amsmath,amsthm}
 \usepackage{graphicx}
@@ -29,17 +8,13 @@
 \usepackage{epsfig}
 \usepackage[english]{babel}
 \usepackage{tesi}
+\usepackage[nottoc]{tocbibind}
 
-% per le accentate
 \usepackage[utf8]{inputenc}
-%
-\newtheorem{myteor}{Teorema}[section]
-%
+
+\newtheorem{myteor}{Theorem}[section]
 \newenvironment{teor}{\begin{myteor}\sl}{\end{myteor}}
-%
-%
-%			TITOLO
-%
+
 \begin{document}
 \title{SV-based regression techniques for survival analysis: a case study on veterinary data}
 \author{Elvis NAVA}
@@ -62,47 +37,41 @@
 %		- produce or don't produce a List of Tables page
 %		  (false by default)
 % 
-%			DEDICA
 %
 \beforepreface
-\prefacesection{}
-        {\hfill \Large {\sl dedicated to \dots}}
+\topskip0pt
+\vspace*{\fill}
+{\hfill \Large {\sl dedicated to \dots}}
+\vspace*{\fill}
 % 
-%			PREFAZIONE
+%			PREFACE
 %
 \prefacesection{Preface}
 This is a preface.
 %
+%			ACKNOWLEDGMENTS
 %
-%			ORGANIZZAZIONE
-\section*{Thesis Structure}
-\label{structure}
-The thesis is structured as follows:
-\begin{itemize}
-\item in Chapter 1 ....
-\end{itemize}
-%
-%			RINGRAZIAMENTI
-%
-%\prefacesection{Acknowledgments}
-%asdjhgftry.
-%\afterpreface
-% 
+\prefacesection{Acknowledgments}
 
-\chapter*{Introduction}
+\afterpreface
+
+
+\chapter{Introduction}
 \label{intro}
 Thesis introduction.
 
-% 
-%
 \chapter{Support Vector Machines for Regression}
-\label{ch1}
+\label{chsvm}
+
+\chapter{The Veterinary Dataset}
+\label{chdataset}
+A description of the given dataset.
 
 \chapter{Dataset Preprocessing and Exploration}
-\label{ch2}
+\label{chprepr}
 Before any meaningful analysis can be carried out, it's important to apply a consistency check to the raw dataset, so that it becomes suitable for processing. This kind of work, called \textit{preprocessing}, is paramount to successful analysis of real world data, such as the veterinary dataset subject of this thesis.
 
-\section{Consistency Check}
+\section{Consistency check}
 The \texttt{dogs\_2006\_2016} dataset was provided as part of a .xlsx sheet without any in-built formulas, so it was deemed sensible to try a number of consistency checks on dependent features, such as dates and times.
 \subsection*{Date consistency}
 The first check involved testing the validity of the inequality $ Birth\; date \leq First\; visit \leq Therapy\; started \leq Date\; of\; death $. This check produced 42 errors, all from data points for which $ Therapy\; started < First\; visit $, while in all the remaining cases the two values were equal. Then it became clear that the correct interpretation of the data corresponds in fact to the inequality $ Birth\; date \leq Therapy\; started \leq First\; visit \leq Date\; of\; death $. \textit{Therapy started} is equal to \textit{First visit} when the therapy started on the first visit, while it is set to an earlier date if the dog was already undergoing therapy under different supervision.
@@ -115,7 +84,7 @@ The \textit{Therapy category} feature was supposedly calculated as the sum of va
 \subsection*{Age}
 TODO: ages problem, many errors (50+).
 
-\section{Exploratory Analysis}
+\section{Exploratory analysis}
 After the first checks necessary to assess data consistency, the dataset was further inspected using some exploratory analysis tools. The insights obtained with this techniques proved useful for subsequent tasks such as feature selection and normalization.
 \subsection*{Feature correlation}
 A correlation heatmap of the available features was used to highlight possible dependencies among them. In particular, Fig. XX shows that the following groups of features exhibit a relevant correlation:
@@ -146,8 +115,16 @@ This problem, discussed more in depth later in this thesis, inspired a modificat
 \item \textbf{Using the maximum non-censored value}: find the maximum \textit{Survival time} value for dogs that did die and substitute it to all censored values. This technique represents a rudimentary way of letting alive subjects positively influence survival time prediction, as their value is artificially set at the maximum in the resulting dataset.
 \end{itemize}
 
+\section{Feature engineering}
+
+\chapter{Alternative SVM Models for Censored Datasets}
+
+\chapter{A Custom SVM Implementation}
+
+\chapter{Final Results and Conclusions}
+
 %
-%			BIBLIOGRAFIA
+%			BIBLIOGRAPHY
 %
 \begin{thebibliography}{00}
 %
