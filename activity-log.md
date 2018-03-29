@@ -1,5 +1,8 @@
 # SVMRegression - Research Activity Log
 
+## 29th March 2018
+Defined a first draft of the thesis structure
+
 ## 25th March 2018
 Implemented kernels in `svr.py` and nonlinear tests. Custom SVR consistently obtains the same scores of the Sklearn SVR in both linear and nonlinear tests.
 
