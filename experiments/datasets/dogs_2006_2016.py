@@ -61,31 +61,23 @@ def load_df_dogs_2016(NApolicy = 'none', dropColumns = [], fixErrors = True, cen
 
     timeCols = ["Birth date", "First visit", "Therapy started", "Date of death"]
 
-    #Setting up new column "Therapy to visit", a time delta in days
-    thertovisit = []
+    #Use the same date format
+    for attr in timeCols:
+        data[attr] = data[attr].apply(lambda x: converters.date_converter(x))
 
     for i, row in data.iterrows():
-        #Use the same date format
-        for attr in timeCols:
-            data.iloc[i, data.columns.get_loc(attr)] = converters.date_converter(row[attr])
-
-        row = data.iloc[i, :]
-
+        row = data.loc[i, :]
         if fixErrors:
             #Fix incorrect survival time
             if (row["Date of death"] - row["First visit"]).days != row["Survival time"]:
-                data.iloc[i, data.columns.get_loc("Survival time") ] = (row["Date of death"] - row["First visit"]).days
-
-        row = data.iloc[i, :]
-        #Compute "Therapy to visit"
-        thertovisit.append((row["First visit"] - row["Therapy started"]).days)
-
-        for attr in timeCols:
-            data.iloc[i, data.columns.get_loc(attr)] =  time.mktime(row[attr].timetuple())
+                data.at[i, "Survival time"] = (row["Date of death"] - row["First visit"]).days
 
     if newFeats:
-        #add "Therapy to visit" feature to the dataset
-        data["Therapy to visit"] = pd.Series(thertovisit)
+        #Adding new column "Therapy to visit", a time delta in days
+        data["Therapy to visit"] = (data["First visit"] - data["Therapy started"]).apply(lambda x: x.days)
+
+    for attr in timeCols:
+        data[attr] = data[attr].apply(lambda x: time.mktime(x.timetuple()))
 
     #Censoring policies
     #drop censored rows
@@ -96,7 +88,7 @@ def load_df_dogs_2016(NApolicy = 'none', dropColumns = [], fixErrors = True, cen
         survmax = data["Survival time"][data["Dead"]==1].max()
         for i, row in data.iterrows():
             if row["Dead"]==0:
-                data.set_value(i, "Survival time", survmax)
+                data.at[i, "Survival time"] = survmax
 
     #Delete useless columns
     data.drop(dropColumns, axis="columns", inplace=True)
@@ -115,7 +107,7 @@ def load_df_dogs_2016(NApolicy = 'none', dropColumns = [], fixErrors = True, cen
         for i, row in data.iterrows():
             for nacol in params.keys():
                 if pd.isnull(row[nacol]):
-                    data.set_value(i, nacol, np.random.normal(loc=params[nacol][0], scale=params[nacol][1]))
+                    data.at[i, nacol] = np.random.normal(loc=params[nacol][0], scale=params[nacol][1])
 
     return data
 

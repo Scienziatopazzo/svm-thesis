@@ -69,7 +69,7 @@ A description of the given dataset.
 
 \chapter{Dataset Preprocessing and Exploration}
 \label{chprepr}
-Before any meaningful analysis can be carried out, it's important to apply a consistency check to the raw dataset, so that it becomes suitable for processing. This kind of work, called \textit{preprocessing}, is paramount to successful analysis of real world data, such as the veterinary dataset subject of this thesis.
+Before any meaningful analysis can be carried out, it's important to apply a number of checks and alterations to the raw dataset, so that it becomes suitable for processing. This kind of work, called \textit{preprocessing}, is paramount to successful analysis of real world data, such as the veterinary dataset subject of this thesis.
 
 \section{Consistency check}
 The \texttt{dogs\_2006\_2016} dataset was provided as part of a .xlsx sheet without any in-built formulas, so it was deemed sensible to try a number of consistency checks on dependent features, such as dates and times.
@@ -115,7 +115,12 @@ This problem, discussed more in depth later in this thesis, inspired a modificat
 \item \textbf{Using the maximum non-censored value}: find the maximum \textit{Survival time} value for dogs that did die and substitute it to all censored values. This technique represents a rudimentary way of letting alive subjects positively influence survival time prediction, as their value is artificially set at the maximum in the resulting dataset.
 \end{itemize}
 
-\section{Feature engineering}
+\chapter{Model Training and Selection}
+
+\section{Cross-Validation and Repeated Holdout}
+
+\section{Feature Engineering}
+
 
 \chapter{Alternative SVM Models for Censored Datasets}
 

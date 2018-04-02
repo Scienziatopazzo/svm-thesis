@@ -1,7 +1,12 @@
 # SVMRegression - Research Activity Log
 
+## 2nd April 2018
+* Removed deprecated `set_value` calls in `dogs_2006_2016.py` and cleaned up the code.
+* Cleaned up Training examples in notebooks, added a comparison between `GridSearchCV` and Repeated Houldout in the `Repeated Holdout` notebook.
+* Modified thesis structure.
+
 ## 29th March 2018
-Defined a first draft of the thesis structure
+Defined a first draft of the thesis structure.
 
 ## 25th March 2018
 Implemented kernels in `svr.py` and nonlinear tests. Custom SVR consistently obtains the same scores of the Sklearn SVR in both linear and nonlinear tests.

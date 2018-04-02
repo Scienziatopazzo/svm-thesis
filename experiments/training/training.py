@@ -21,9 +21,9 @@ def SVR_gridsearch_holdout(X, y, estimator, param_grid, test_size, val_size):
             score = svr.score(X_Validation, y_Validation)
             if score > best_score:
                 best_score = score
-                best_params = (C, coef0, degree, epsilon, gamma, kernel)
+                best_params = {'C':C, 'coef0':coef0, 'degree':degree, 'epsilon':epsilon, 'gamma':gamma, 'kernel':kernel}
 
-    best_svr = estimator(C=best_params[0], coef0=best_params[1], degree=best_params[2], epsilon=best_params[3], gamma=best_params[4], kernel=best_params[5])
+    best_svr = estimator(**best_params)
     best_svr.fit(X_TrainAndValidation, y_TrainAndValidation)
 
     test_score = best_svr.score(X_Test, y_Test)
