@@ -1,5 +1,10 @@
 # SVMRegression - Research Activity Log
 
+## 3rd April 2018
+* Experimented with polynomial kernel of deg>3, some cases make the computation too long, hanging the grid search.
+* Experimented with scalers: `RobustScalers` retains outliers, hanging the grid search. `QuantileTranformer` obtains the same scores as the usual `StandardScaler`.
+* Added the possibility of doing outlier detection and filtering on the dataset in `dogs_2006_2016.py`. Using this option seems to improve scores.
+
 ## 2nd April 2018
 * Removed deprecated `set_value` calls in `dogs_2006_2016.py` and cleaned up the code.
 * Cleaned up Training examples in notebooks, added a comparison between `GridSearchCV` and Repeated Houldout in the `Repeated Holdout` notebook.

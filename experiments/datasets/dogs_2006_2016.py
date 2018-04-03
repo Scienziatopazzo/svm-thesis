@@ -118,9 +118,15 @@ dropDead = ["Dead", "MC"]
 dropDates = ["Birth date", "First visit", "Therapy started", "Date of death"]
 
 #load sklearn Bunch object with Survival time as target
-def load_skl_dogs_2016(NApolicy='drop', dropColumns=dropNonNumeric+dropIrrelevant+dropDead+dropDates, censoringPolicy='none', newFeats=True, scaler=None):
+def load_skl_dogs_2016(NApolicy='drop', dropColumns=dropNonNumeric+dropIrrelevant+dropDead+dropDates, censoringPolicy='none', newFeats=True, scaler=None, outlier_detector=None):
 
     data = load_df_dogs_2016(NApolicy = NApolicy, dropColumns = dropColumns, censoringPolicy=censoringPolicy, newFeats=newFeats)
+
+    if outlier_detector is not None:
+        y_outliers = outlier_detector.fit_predict(data.as_matrix())
+        data["Outlier"] = pd.Series(y_outliers)
+        data.drop(data[data["Outlier"]<1].index, inplace=True)
+        data.drop("Outlier", axis="columns", inplace=True)
 
     #Target column
     targetArray = data.loc[:, "Survival time"].as_matrix()
@@ -128,6 +134,7 @@ def load_skl_dogs_2016(NApolicy='drop', dropColumns=dropNonNumeric+dropIrrelevan
 
     featureNames = list(data.columns)
     dataMatrix = data.as_matrix()
+
     if scaler is not None:
         dataMatrix = scaler.fit_transform(dataMatrix)
 
