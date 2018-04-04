@@ -1,5 +1,8 @@
 # SVMRegression - Research Activity Log
 
+## 4th April 2018
+Started implementing scaling and doing outlier detection only on the training split of the data. TODO: outlier detection, proper pipeline.
+
 ## 3rd April 2018
 * Experimented with polynomial kernel of deg>3, some cases make the computation too long, hanging the grid search.
 * Experimented with scalers: `RobustScalers` retains outliers, hanging the grid search. `QuantileTranformer` obtains the same scores as the usual `StandardScaler`.
