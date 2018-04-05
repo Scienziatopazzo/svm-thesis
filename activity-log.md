@@ -1,5 +1,9 @@
 # SVMRegression - Research Activity Log
 
+## 5th April 2018
+* Added multiprocessing to `training.py`.
+* Added outlier detection only on the training split in `training.py`.
+
 ## 4th April 2018
 Started implementing scaling and doing outlier detection only on the training split of the data. TODO: outlier detection, proper pipeline.
 

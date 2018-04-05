@@ -2,40 +2,98 @@ import pandas as pd
 import numpy as np
 import itertools as it
 from sklearn.model_selection import train_test_split
+from multiprocessing import Process, Queue
+from queue import Empty
 
 #Grid search model selection for SVR with holdout. Needs a param_grid with all possible parameters stated, even ones not needed for a particular kernel
-def SVR_gridsearch_holdout(X, y, estimator, param_grid, test_size, val_size, scaler=None, outlier_detector=None):
+def SVR_gridsearch_holdout(X, y, estimator, param_grid, test_size, val_size, scaler=None, outlier_detector=None, nprocs=8):
     X_TrainAndValidation, X_Test, y_TrainAndValidation, y_Test = train_test_split(X, y.astype('float64'), test_size=test_size)
     X_Train, X_Validation, y_Train, y_Validation = train_test_split(X_TrainAndValidation, y_TrainAndValidation, test_size=val_size)
+
+    #Do outlier detection on training set
+    if outlier_detector is not None:
+        y_outliers = outlier_detector.fit_predict(np.concatenate((X_Train, y_Train.reshape((-1,1))), axis=1))
+        X_Train = X_Train[y_outliers >= 1]
+        y_Train = y_Train[y_outliers >= 1]
 
     #Scale training set
     if scaler is not None:
         X_Scaler, y_Scaler = scaler(), scaler()
-        X_Scaler.fit(X_Train)
-        y_Scaler.fit(y_Train.reshape((-1,1)))
-        X_Train, y_Train = X_Scaler.transform(X_Train), y_Scaler.transform(y_Train.reshape((-1,1))).ravel()
-        X_Test, y_Test = X_Scaler.transform(X_Test), y_Scaler.transform(y_Test.reshape((-1,1))).ravel()
+        X_Train, y_Train = X_Scaler.fit_transform(X_Train), y_Scaler.fit_transform(y_Train.reshape((-1,1))).ravel()
         X_Validation, y_Validation = X_Scaler.transform(X_Validation), y_Scaler.transform(y_Validation.reshape((-1,1))).ravel()
-        X_TrainAndValidation, y_TrainAndValidation = X_Scaler.transform(X_TrainAndValidation), y_Scaler.transform(y_TrainAndValidation.reshape((-1,1))).ravel()
 
     best_score = -np.inf
-    best_params = (0,0,0,0,0,0)
+    best_params = {}
+    b_queue = Queue()
+    p_total_num = 0
 
     for grid in param_grid:
         allParams = sorted(grid)
         combinations = it.product(*(grid[i] for i in allParams))
 
         for C, coef0, degree, epsilon, gamma, kernel in combinations:
-            svr = estimator(kernel=kernel, degree=degree, gamma=gamma, coef0=coef0, C=C, epsilon=epsilon)
-            svr.fit(X_Train, y_Train)
-            score = svr.score(X_Validation, y_Validation)
-            if score > best_score:
-                best_score = score
-                best_params = {'C':C, 'coef0':coef0, 'degree':degree, 'epsilon':epsilon, 'gamma':gamma, 'kernel':kernel}
+            while p_total_num >= nprocs:
+                score, fit_params = b_queue.get()
+                while p_total_num > 0:
+                    if score > best_score:
+                        best_score = score
+                        best_params = fit_params
+                    p_total_num -= 1
+                    try:
+                        score, fit_params = b_queue.get(block=False)
+                    except Empty:
+                        break
+
+            p_total_num += 1
+            p = Process(target=proc_train, args=(b_queue, estimator, X_Train, y_Train, X_Validation, y_Validation, {'C':C, 'coef0':coef0, 'degree':degree, 'epsilon':epsilon, 'gamma':gamma, 'kernel':kernel}))
+            p.start()
+
+    while p_total_num > 0:
+        score, fit_params = b_queue.get()
+        if score > best_score:
+            best_score = score
+            best_params = fit_params
+        p_total_num -= 1
 
     best_svr = estimator(**best_params)
-    best_svr.fit(X_TrainAndValidation, y_TrainAndValidation)
 
+    #Redo both outlier detection and scaling on joined train and validation sets with final parameters
+    if outlier_detector is not None:
+        y_outliers = outlier_detector.fit_predict(np.concatenate((X_TrainAndValidation, y_TrainAndValidation.reshape((-1,1))), axis=1))
+        X_TrainAndValidation = X_TrainAndValidation[y_outliers >= 1]
+        y_TrainAndValidation = y_TrainAndValidation[y_outliers >= 1]
+
+    if scaler is not None:
+        X_TrainAndValidation, y_TrainAndValidation = X_Scaler.fit_transform(X_TrainAndValidation), y_Scaler.fit_transform(y_TrainAndValidation.reshape((-1,1))).ravel()
+        X_Test, y_Test = X_Scaler.transform(X_Test), y_Scaler.transform(y_Test.reshape((-1,1))).ravel()
+
+    best_svr.fit(X_TrainAndValidation, y_TrainAndValidation)
     test_score = best_svr.score(X_Test, y_Test)
 
     return (best_params, test_score)
+
+def proc_train(b_queue, estimator, X_Train, y_Train, X_Validation, y_Validation, fit_params):
+    svr = estimator(**fit_params)
+    svr.fit(X_Train, y_Train)
+    score = svr.score(X_Validation, y_Validation)
+    b_queue.put((score, fit_params))
+
+#Finally testing a parameter set for an estimator on random test splits
+def random_split_tests(X, y, estimator, params, test_size, ntests=10, scaler=None, outlier_detector=None):
+    mean_score = 0
+    for i in range(ntests):
+        X_Train, X_Test, y_Train, y_Test = train_test_split(X, y.astype('float64'), test_size=test_size)
+        if outlier_detector is not None:
+            y_outliers = outlier_detector.fit_predict(np.concatenate((X_Train, y_Train.reshape((-1,1))), axis=1))
+            X_Train = X_Train[y_outliers >= 1]
+            y_Train = y_Train[y_outliers >= 1]
+        if scaler is not None:
+            X_Scaler, y_Scaler = scaler(), scaler()
+            X_Scaler.fit(X_Train)
+            y_Scaler.fit(y_Train.reshape((-1,1)))
+            X_Train, y_Train = X_Scaler.transform(X_Train), y_Scaler.transform(y_Train.reshape((-1,1))).ravel()
+            X_Test, y_Test = X_Scaler.transform(X_Test), y_Scaler.transform(y_Test.reshape((-1,1))).ravel()
+        best_svr = estimator(**params)
+        best_svr.fit(X_Train, y_Train)
+        mean_score += best_svr.score(X_Test, y_Test)/ntests
+    return mean_score
