@@ -7,7 +7,7 @@ from . import converters;
 from sklearn.datasets.base import Bunch
 
 #Load dataframe
-def load_df_dogs_2016(NApolicy = 'none', dropColumns = [], fixErrors = True, censoringPolicy = 'none', newFeats = True):
+def load_df_dogs_2016(NApolicy = 'none', dropColumns = [], fixErrors = True, fixAge=True, censoringPolicy = 'none', newFeats = True):
     module_path = dirname(__file__)
     data = pd.read_excel(module_path + "/data/dogs.xlsx",
                          spreadsheet="2006-2016",
@@ -75,6 +75,10 @@ def load_df_dogs_2016(NApolicy = 'none', dropColumns = [], fixErrors = True, cen
     if newFeats:
         #Adding new column "Therapy to visit", a time delta in days
         data["Therapy to visit"] = (data["First visit"] - data["Therapy started"]).apply(lambda x: x.days)
+
+    if fixAge:
+        #Fixing Age attribute to be consistently equal to "First visit" - "Birth date"
+        data["Age"] = (data["First visit"] - data["Birth date"]).apply(lambda x: x.days/365)
 
     for attr in timeCols:
         data[attr] = data[attr].apply(lambda x: time.mktime(x.timetuple()))

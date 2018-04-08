@@ -1,5 +1,10 @@
 # SVMRegression - Research Activity Log
 
+## 8th April 2018
+* Added an automatic Age fix to `load_df_dogs_2016`, since the values in the dataset were unusable.
+* Used `ParameterGrid` in `training.py` to have more flexibility in parameter specification.
+* Completed draft of *The Veterinary Dataset* chapter of thesis.
+
 ## 5th April 2018
 * Added multiprocessing to `training.py`.
 * Added outlier detection only on the training split in `training.py`.

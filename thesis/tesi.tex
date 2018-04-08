@@ -65,14 +65,52 @@ Thesis introduction.
 
 \chapter{The Veterinary Dataset}
 \label{chdataset}
-A description of the given dataset.
+The real world application of Support Vector Regression explored in this thesis consists in a work of survival analysis on a veterinary dataset.
+
+\section{Dataset specifics}
+The dataset, provided as a \texttt{.xlsx} file without formulas, is composed of a collection of dogs' veterinary records, separated in 3 sheets: \textit{2006-2016} data $ (161 \times 30) $, \textit{2001-2005} data $ (69 \times 30) $, and a \textit{legend}. Both data sheets have 30 columns, corresponding to the features enumerated in the legend, but only the one from the \textit{2006-2016} period actually uses all of them. Therefore, only the first sheet has been deemed fit for analysis, hereafter referred to as the \texttt{dogs\_2006\_2016} dataset, with a shape of $ (161\; data\; points \times 30\; features) $.
+
+\section{Feature legend}
+Here is the list of all features:
+\begin{itemize}
+\item \textit{Folder}: patient folder ID;
+\item \textit{IP}: presence of Pulmonary Insufficiency (0 = no, 1 = yes);
+\item \textit{IP Gravity}: gravity of Pulmonary Insufficiency (0 = absent, 1 = minor, 2 = moderate, 3 = severe);
+\item \textit{Vrig Tric}: tricuspid regurgitation velocity;
+\item \textit{Birth date}: birth date of patient;
+\item \textit{First visit}: date of first medical visit;
+\item \textit{Age}: age of patient;
+\item \textit{Therapy started}: date of therapy beginning;
+\item \textit{Dead}: death of patient during treatment (0 = no, 1 = yes);
+\item \textit{Date of death}: date of death, right-censored for alive patients;
+\item \textit{MC}: death due to cardiac arrest (0 = no, 1 = yes);
+\item \textit{Survival time}: survival time from first visit, right-censored for alive patients;
+\item \textit{Furosemide}: prescription of furosemide (0 = no, 1 = yes);
+\item \textit{Ache-i}: prescription of acetylcholinesterase inhibitors (0 = no, 1 = yes);
+\item \textit{Pimobendan}: prescription of pimobendan (0 = no, 1 = yes);
+\item \textit{Spironolattone}: prescription of spironolactone (0 = no, 1 = yes);
+\item \textit{Therapy Category}: category of prescriptions, obtained as a sum of the values of features \textit{Furosemide}, \textit{Ache-i}, \textit{Pimobendan} and \textit{Spironolattone};
+\item \textit{Antiaritmico}: prescription of antiarrhythmic (0 = no, 1 = yes);
+\item \textit{isachc}: ISACHC classification of patient;
+\item \textit{Class}: ACVIM classification of patient;
+\item \textit{Weight (Kg)}: weight of patient in kilograms;
+\item \textit{Asx/Ao}: left atrium / aortic root ratio;
+\item \textit{E}: E-wave;
+\item \textit{E/A}:	E-wave / A-wave ratio;
+\item \textit{FE \%}: ejection fraction;
+\item \textit{FS \%}: shortening fraction;
+\item \textit{EDVI}: End-diastolic volume of left ventricle indexed for body surface area;
+\item \textit{ESVI}: End-systolic volume of left ventricle indexed for body surface area;
+\item \textit{Allo diast}: End-diastolic volume of left ventricle not indexed for body surface area;
+\item \textit{Allo sist}: End-systolic volume of left ventricle not indexed for body surface area.
+\end{itemize}
 
 \chapter{Dataset Preprocessing and Exploration}
 \label{chprepr}
 Before any meaningful analysis can be carried out, it's important to apply a number of checks and alterations to the raw dataset, so that it becomes suitable for processing. This kind of work, called \textit{preprocessing}, is paramount to successful analysis of real world data, such as the veterinary dataset subject of this thesis.
 
 \section{Consistency check}
-The \texttt{dogs\_2006\_2016} dataset was provided as part of a .xlsx sheet without any in-built formulas, so it was deemed sensible to try a number of consistency checks on dependent features, such as dates and times.
+The \texttt{dogs\_2006\_2016} dataset was provided as part of a \texttt{.xlsx} sheet without any in-built formulas, so it was deemed sensible to try a number of consistency checks on dependent features, such as dates and times.
 \subsection*{Date consistency}
 The first check involved testing the validity of the inequality $ Birth\; date \leq First\; visit \leq Therapy\; started \leq Date\; of\; death $. This check produced 42 errors, all from data points for which $ Therapy\; started < First\; visit $, while in all the remaining cases the two values were equal. Then it became clear that the correct interpretation of the data corresponds in fact to the inequality $ Birth\; date \leq Therapy\; started \leq First\; visit \leq Date\; of\; death $. \textit{Therapy started} is equal to \textit{First visit} when the therapy started on the first visit, while it is set to an earlier date if the dog was already undergoing therapy under different supervision.
 \subsection*{Survival time consistency}
@@ -116,17 +154,21 @@ This problem, discussed more in depth later in this thesis, inspired a modificat
 \end{itemize}
 
 \chapter{Model Training and Selection}
+\label{chmodsel}
 
-\section{Cross-Validation and Repeated Holdout}
+\section{Cross-validation and repeated holdout}
 
-\section{Feature Engineering}
+\section{Feature engineering}
 
 
 \chapter{Alternative SVM Models for Censored Datasets}
+\label{chaltsvm}
 
 \chapter{A Custom SVM Implementation}
+\label{chcustsvm}
 
 \chapter{Final Results and Conclusions}
+\label{chconcl}
 
 %
 %			BIBLIOGRAPHY

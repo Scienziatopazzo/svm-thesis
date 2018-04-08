@@ -1,11 +1,10 @@
 import pandas as pd
 import numpy as np
-import itertools as it
-from sklearn.model_selection import train_test_split
+from sklearn.model_selection import train_test_split, ParameterGrid
 from multiprocessing import Process, Queue
 from queue import Empty
 
-#Grid search model selection for SVR with holdout. Needs a param_grid with all possible parameters stated, even ones not needed for a particular kernel
+#Grid search model selection for SVR with holdout.
 def SVR_gridsearch_holdout(X, y, estimator, param_grid, test_size, val_size, scaler=None, outlier_detector=None, nprocs=8):
     X_TrainAndValidation, X_Test, y_TrainAndValidation, y_Test = train_test_split(X, y.astype('float64'), test_size=test_size)
     X_Train, X_Validation, y_Train, y_Validation = train_test_split(X_TrainAndValidation, y_TrainAndValidation, test_size=val_size)
@@ -27,26 +26,22 @@ def SVR_gridsearch_holdout(X, y, estimator, param_grid, test_size, val_size, sca
     b_queue = Queue()
     p_total_num = 0
 
-    for grid in param_grid:
-        allParams = sorted(grid)
-        combinations = it.product(*(grid[i] for i in allParams))
+    for params in ParameterGrid(param_grid):
+        while p_total_num >= nprocs:
+            score, fit_params = b_queue.get()
+            while p_total_num > 0:
+                if score > best_score:
+                    best_score = score
+                    best_params = fit_params
+                p_total_num -= 1
+                try:
+                    score, fit_params = b_queue.get(block=False)
+                except Empty:
+                    break
 
-        for C, coef0, degree, epsilon, gamma, kernel in combinations:
-            while p_total_num >= nprocs:
-                score, fit_params = b_queue.get()
-                while p_total_num > 0:
-                    if score > best_score:
-                        best_score = score
-                        best_params = fit_params
-                    p_total_num -= 1
-                    try:
-                        score, fit_params = b_queue.get(block=False)
-                    except Empty:
-                        break
-
-            p_total_num += 1
-            p = Process(target=proc_train, args=(b_queue, estimator, X_Train, y_Train, X_Validation, y_Validation, {'C':C, 'coef0':coef0, 'degree':degree, 'epsilon':epsilon, 'gamma':gamma, 'kernel':kernel}))
-            p.start()
+        p_total_num += 1
+        p = Process(target=proc_train, args=(b_queue, estimator, X_Train, y_Train, X_Validation, y_Validation, params))
+        p.start()
 
     while p_total_num > 0:
         score, fit_params = b_queue.get()
