@@ -1,5 +1,8 @@
 # SVMRegression - Research Activity Log
 
+## 9th April 2018
+Added *Introduction* stub and *Age* subsection in thesis.
+
 ## 8th April 2018
 * Added an automatic Age fix to `load_df_dogs_2016`, since the values in the dataset were unusable.
 * Used `ParameterGrid` in `training.py` to have more flexibility in parameter specification.

@@ -58,10 +58,13 @@ This is a preface.
 
 \chapter{Introduction}
 \label{intro}
-Thesis introduction.
+The subject of this thesis is the use of regression techniques, specifically support vector machine regression, in the analysis and prediction of survival times. The techniques are applied to a dataset of dogs' veterinary records, with the goal of modeling survival from the details of medical visits.
+
+The thesis begins, after the introduction, with the establishment of regression problems and an overview of support vector machines for regression in \autoref{chsvm}. CONTINUES
 
 \chapter{Support Vector Machines for Regression}
 \label{chsvm}
+
 
 \chapter{The Veterinary Dataset}
 \label{chdataset}
@@ -120,7 +123,7 @@ A check was performed on whether or not the dataset is consistent with regard to
 \subsection*{Therapy category}
 The \textit{Therapy category} feature was supposedly calculated as the sum of various binary features, each representing a pharmaceutical prescription. A check was made to ensure its correctness and no errors were reported.
 \subsection*{Age}
-TODO: ages problem, many errors (50+).
+A check on the \textit{Age} value was meant to determine whether it was recorded on the first visit, or on another occasion. Instead, the findings suggest that the value has no consistent correlation with any date feature. Calculating the value from the first visit date yields an error on 50 data points, while changing it to the death date only fixes 5 of these errors. In the end, it was deemed sensible to simply use the newly calculated values obtained with the first visit date, instead of the reported ones.
 
 \section{Exploratory analysis}
 After the first checks necessary to assess data consistency, the dataset was further inspected using some exploratory analysis tools. The insights obtained with this techniques proved useful for subsequent tasks such as feature selection and normalization.
@@ -141,7 +144,7 @@ The considered dataset, as is the case with most real world data, contains NA (N
 \item \textbf{Dropping NA values}. This procedure consists in simply deleting all data points that include NA values in any feature field. It does not introduce potentially spurious information, but effectively reduces the dataset's size.
 \item \textbf{Using the mean value}. This procedure consists in filling any NA value with the mean value of all data points for the corresponding feature. It maintains the dataset's size but it might alter the distributions of features, especially when the number of NA values is high.
 \item \textbf{Sampling from a normal distribution}. This technique assumes a normal distribution for the involved features, and replaces NAs with values drawn from an approximation of such distributions. It maintains the dataset's size and feature distributions, but introduces an element of randomness in the analysis. Before applying this technique it's important to verify the normality of the affected features using a tool such as a QQ-plot.
-\item \textbf{Using values predicted from a model (e.g., Linear Regression)}: TODO
+\item \textbf{Using values predicted from a model (e.g., Linear Regression)}. TODO
 \end{itemize}
 
 \section{Handling censored data}
@@ -149,8 +152,8 @@ A crucial problem in survival analysis is that of data censoring: in this case t
 
 This problem, discussed more in depth later in this thesis, inspired a modification of the standard Support Vector Machine model. However, some elementary techniques can be applied even at this stage of analysis. Precisely, the following methodologies have been considered:
 \begin{itemize}
-\item \textbf{Drop censored values}: simply delete all data points for dogs that have not yet died. This technique removes the need to handle censoring in the analysis, but deletes important information at the same time.
-\item \textbf{Using the maximum non-censored value}: find the maximum \textit{Survival time} value for dogs that did die and substitute it to all censored values. This technique represents a rudimentary way of letting alive subjects positively influence survival time prediction, as their value is artificially set at the maximum in the resulting dataset.
+\item \textbf{Drop censored values}. simply delete all data points for dogs that have not yet died. This technique removes the need to handle censoring in the analysis, but deletes important information at the same time.
+\item \textbf{Using the maximum non-censored value}. find the maximum \textit{Survival time} value for dogs that did die and substitute it to all censored values. This technique represents a rudimentary way of letting alive subjects positively influence survival time prediction, as their value is artificially set at the maximum in the resulting dataset.
 \end{itemize}
 
 \chapter{Model Training and Selection}
