@@ -56,14 +56,19 @@ This is a preface.
 \afterpreface
 
 
-\chapter{Introduction}
+\chapter*{Introduction}
 \label{intro}
+\addcontentsline{toc}{chapter}{Introduction}
 The subject of this thesis is the use of regression techniques, specifically support vector machine regression, in the analysis and prediction of survival times. The techniques are applied to a dataset of dogs' veterinary records, with the goal of modeling survival from the details of medical visits.
 
-The thesis begins, after the introduction, with the establishment of regression problems and an overview of support vector machines for regression in \autoref{chsvm}. CONTINUES
+The thesis begins in \autoref{chsvm} with an overview of support vector machines for regression. CONTINUES
 
 \chapter{Support Vector Machines for Regression}
 \label{chsvm}
+Survival analysis can be modeled as a regression problem, survival time being a continuous variable dependent on a certain number of covariates. This chapter consists in a description of support vector machine regression, a machine learning technique used to solve a particular formulation of linear and non-linear regression by framing it as an optimization problem. A complete tutorial is available in \cite{svmtutorial}.
+
+\section{Soft-margin linear SVR}
+
 
 
 \chapter{The Veterinary Dataset}
@@ -170,16 +175,20 @@ This problem, discussed more in depth later in this thesis, inspired a modificat
 \chapter{A Custom SVM Implementation}
 \label{chcustsvm}
 
-\chapter{Final Results and Conclusions}
-\label{chconcl}
+\chapter{Results and Discussion}
+\label{chres}
+
+\chapter*{Conclusions}
+\label{concl}
+\addcontentsline{toc}{chapter}{Conclusions}
 
 %
 %			BIBLIOGRAPHY
 %
 \begin{thebibliography}{00}
 %
-\bibitem{itemexample}
-Example citation.
+\bibitem{svmtutorial}
+Smola, Alex J., and Bernhard Schölkopf. "A tutorial on support vector regression." Statistics and computing 14.3 (2004): 199-222.
 
 %
 \end{thebibliography}
