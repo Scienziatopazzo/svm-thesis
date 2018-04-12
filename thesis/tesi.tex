@@ -65,11 +65,103 @@ The thesis begins in \autoref{chsvm} with an overview of support vector machines
 
 \chapter{Support Vector Machines for Regression}
 \label{chsvm}
-Survival analysis can be modeled as a regression problem, survival time being a continuous variable dependent on a certain number of covariates. This chapter consists in a description of support vector machine regression, a machine learning technique used to solve a particular formulation of linear and non-linear regression by framing it as an optimization problem. A complete tutorial is available in \cite{svmtutorial}.
+Survival analysis can be modeled as a regression problem, survival time being a continuous variable dependent on a certain number of covariates. This chapter begins with an introduction to function estimation in general, followed by a description of support vector machine regression, a machine learning technique used to solve a particular formulation of linear and non-linear regression by framing it as an optimization problem. A tutorial on the basics of support vector machines is available in \cite{svmtutorial}, while a description of their use for regression can be found in \cite{svregtutorial}.
 
-\section{Soft-margin linear SVR}
+\section{Function estimation and risk minimization}
+Given a set of training data $ \mathbf{X} := \lbrace (x_{1},y_{1}),\ldots,(x_{\ell},y_{\ell})\rbrace \subset \mathcal{X} \times \mathbb{R} $ and assuming it has been drawn (independent and identically distributed) from a probability distribution $ P(x,y) $, the goal of function estimation is to find the function $ f $ minimizing the expectation of test error, also known as risk functional:
+\begin{equation} \label{riskfun}
+R[f] = \int c(x,y,f(x))dP(x,y)
+\end{equation}
+$ c(x,y,f(x)) $ being a loss function that determines the penalization for estimation errors. However, the distribution $ P(x,y) $ is not known, and therefore $ R[f] $ cannot be computed. Using $ \mathbf{X} $, it's only possible to compute the empirical risk functional:
+\begin{equation} \label{empriskfun}
+R_{emp}[f] = \dfrac{1}{\ell} \sum_{i=1}^{\ell}c(x_{i},y_{i},f(x_{i}))
+\end{equation}
+which makes no reference to the original probability distribution. Nonetheless, simply minimizing $ R_{emp}[f] $ for some function class $ H $ is not a good strategy, as generally it is not true that $ \operatorname*{argmin}_{f} R_{emp}[f] = \operatorname*{argmin}_{f} R[f] $.
 
+Different bounds for $ R[f] $ based on $ R_{emp}[f] $ have been demonstrated to hold. In the context of binary classification, an example is the Vapnik-Chervonenkis inequality \cite{vapnik95}:
+\begin{equation} \label{vapnikbound}
+R[f] \leq R_{emp}[f] + \sqrt{\dfrac{h(\log (2\ell /h) + 1) - \log (\eta /4)}{\ell}}
+\end{equation}
+valid with a probability of $ 1 - \eta $, with $ \eta $ such that $ 0 \leq \eta \leq 1 $. $ h $ is called the \textit{VC dimension} of the function class $ H $ from which $ f $ is chosen, and it is a measure of the \textit{"capacity"} of the function class. When the "capacity" of $ H $ is very high, the VC dimension increases, leading in this example to a higher upper bound on the risk, and in practice to a propensity towards overfitting and bad performance.
 
+One solution to this problem, useful even outside of classification, is to add a capacity control term to the empirical risk, so that $ H $ is artificially kept small. In the case of support vector machines, the function $ f $ is determined based on a vector of weights $ w $. By using $ \| w \|^2 $ as the capacity control term added to the expression being minimized, the number of different functions obtainable is reduced. This leads to the regularized risk functional:
+\begin{equation} \label{regriskfun}
+R_{reg}[f] = R_{emp}[f] + \dfrac{\lambda}{2}\| w \|^2
+\end{equation}
+where $ \lambda > 0 $ is a regularization constant.
+
+\section{Linear support vector regression}
+Given training data $ \mathbf{X} \subset \mathcal{X} \times \mathbb{R} $, the goal of hard-margin support vector regression is to find the \textit{flattest} function $ f $ such that, for every $ (x_{i},y_{i}) \in \mathbf{X} $, $ f(x_{i}) $ has at most $ \varepsilon $ deviation from the actual target $ y_{i} $. In the linear case, $ f $ takes the form:
+\begin{equation} \label{linfun}
+f(x) = \langle w,x \rangle + b \ \text{with} \ w \in \mathcal{X}, b \in \mathbb{R}
+\end{equation}
+In order to control function class capacity, $ \| w \|^2 $ is minimized, and in this sense the "flattest" function is obtained. This can be written as a convex optimization problem:
+\begin{equation} \label{hmargprimal}
+\begin{split}
+\text{minimize} &\ \dfrac{1}{2}\| w \|^2 \\
+\text{subject to} &\ \begin{cases}
+y_{i} - \langle w,x_{i} \rangle - b &\leq \varepsilon \\
+\langle w,x_{i} \rangle + b - y_{i} &\leq \varepsilon
+\end{cases}
+\end{split}
+\end{equation}
+This "hard margin" formulation may sometimes be unfeasible, or lead to overfitting in the case of noisy training data. For this reason, soft-margin support vector regression allows for errors by introducing slack variables $ \xi_{i} $, $ \xi_{i}^{*} $, penalized in the objective function by the coefficient $ C > 0 $:
+\begin{equation} \label{smargprimal}
+\begin{split}
+\text{minimize} &\ \dfrac{1}{2}\| w \|^2 + C\sum_{i=1}^{\ell}(\xi_{i} + \xi_{i}^{*}) \\
+\text{subject to} &\ \begin{cases}
+y_{i} - \langle w,x_{i} \rangle - b &\leq \varepsilon + \xi_{i} \\
+\langle w,x_{i} \rangle + b - y_{i} &\leq \varepsilon + \xi_{i}^{*} \\
+\xi_{i}, \xi_{i}^{*} &\geq 0
+\end{cases}
+\end{split}
+\end{equation}
+In terms of loss functions for risk minimization, this corresponds to using an $ \varepsilon $-insensitive loss function:
+\begin{equation} \label{epsloss}
+c(x,y,f(x)) = \vert y - f(x) \vert_{\varepsilon} = \begin{cases}
+0 &\ \text{if } \vert y - f(x) \vert \leq \varepsilon \\
+\vert y - f(x) \vert - \varepsilon &\ \text{otherwise}
+\end{cases}
+\end{equation}
+so that predictions laying inside the $ \varepsilon $-insensitive tube are not penalized, while those laying outside are penalized linearly.
+
+The optimization problem in (\ref{smargprimal}), referred to as the \textit{primal} problem, is more easily solved in its \textit{dual} formulation. This is constructed from the Lagrangian of the objective function:
+\begin{equation} \label{lagrangian}
+\begin{split}
+L =& \ \dfrac{1}{2}\| w \|^2 + C\sum_{i=1}^{\ell}(\xi_{i} + \xi_{i}^{*}) - \sum_{i=1}^{\ell}(\eta_{i}\xi_{i} + \eta_{i}^{*}\xi_{i}^{*}) \\
+&- \sum_{i=1}^{\ell}\alpha_{i}(\varepsilon + \xi_{i} - y_{i} + \langle w,x_{i} \rangle + b) \\
+&- \sum_{i=1}^{\ell}\alpha_{i}^{*}(\varepsilon + \xi_{i}^{*} + y_{i} - \langle w,x_{i} \rangle - b)
+\end{split}
+\end{equation}
+with $ \eta_{i} $, $ \eta_{i}^{*} $, $ \alpha_{i} $, $ \alpha_{i}^{*} $ being positive Lagrange multipliers.
+
+Because of the saddle point coindition, the partial derivatives of $ L $ with respect to the primal values must be equal to zero at optimality:
+\begin{align}
+\label{partb}
+\partial_{b}L &= \sum_{i=1}^{\ell}(\alpha_{i}^{*} - \alpha_{i}) = 0 \\
+\label{partw}
+\partial_{w}L &= w - \sum_{i=1}^{\ell}(\alpha_{i} - \alpha_{i}^{*})x_{i} = 0 \\
+\label{partxi}
+\partial_{\xi_{i}^{(*)}}L &= C - \alpha_{i}^{(*)} - \eta_{i}^{(*)} = 0
+\end{align}
+Substituting (\ref{partb}), (\ref{partw}), and (\ref{partxi}) into (\ref{lagrangian}) leads to the dual optimization problem:
+\begin{equation} \label{smargdual}
+\begin{split}
+\text{maximize} &\quad
+-\dfrac{1}{2}\sum_{i,j=1}^{\ell}(\alpha_{i} - \alpha_{i}^{*})(\alpha_{j} - \alpha_{j}^{*})\langle x_{i},x_{j} \rangle -\varepsilon\sum_{i=1}^{\ell}(\alpha_{i} + \alpha_{i}^{*}) + \sum_{i=1}^{\ell}y_{i}(\alpha_{i}-\alpha_{i}^{*}) \\
+\text{subject to} &\quad \left\{\begin{split}
+&\sum_{i=1}^{\ell}(\alpha_{i} - \alpha_{i}^{*}) = 0 \\
+&\alpha_{i},\alpha_{i}^{*} \in [0,C]
+\end{split}\right.
+\end{split}
+\end{equation}
+Equation (\ref{partw}) can be rewritten as $ w = \sum_{i=1}^{\ell}(\alpha_{i}-\alpha_{i}^{*})x_{i} $, this means $ w $ can be fully represented as a linear combination of the training points $ x_{i} $. Therefore, the function $ f $ obtained from the solution to this optimization problem can be written as a \textit{support vector expansion}:
+\begin{equation} \label{fsvexp}
+f(x) = \sum_{i=1}^{\ell}(\alpha_{i}-\alpha_{i}^{*})\langle x_{i},x\rangle + b
+\end{equation}
+Each point $ x_{i} $ for which $ (\alpha_{i}-\alpha_{i}^{*}) \neq 0 $ is called a \textit{support vector}, and only these points are needed for a sparse representation of $ f $.  Because of this, the complexity of $ f $ only depends on the number of support vectors, and not on the dimensionality of $ \mathcal{X} $.
+
+\section{Kernels and nonlinearity}
 
 \chapter{The Veterinary Dataset}
 \label{chdataset}
@@ -186,9 +278,15 @@ This problem, discussed more in depth later in this thesis, inspired a modificat
 %			BIBLIOGRAPHY
 %
 \begin{thebibliography}{00}
-%
+
 \bibitem{svmtutorial}
+Burges, Christopher JC. "A tutorial on support vector machines for pattern recognition." Data mining and knowledge discovery 2.2 (1998): 121-167.
+
+\bibitem{svregtutorial}
 Smola, Alex J., and Bernhard Schölkopf. "A tutorial on support vector regression." Statistics and computing 14.3 (2004): 199-222.
+
+\bibitem{vapnik95}
+Vapnik V., "The Nature of Statistical Learning Theory." Springer, New York (1995).
 
 %
 \end{thebibliography}
