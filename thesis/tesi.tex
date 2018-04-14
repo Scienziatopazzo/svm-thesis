@@ -59,9 +59,18 @@ This is a preface.
 \chapter*{Introduction}
 \label{intro}
 \addcontentsline{toc}{chapter}{Introduction}
-The subject of this thesis is the use of regression techniques, specifically support vector machine regression, in the analysis and prediction of survival times. The techniques are applied to a dataset of dogs' veterinary records, with the goal of modeling survival from the details of medical visits.
+The subject of this thesis is the use of regression techniques, specifically support vector machine regression, in the analysis and prediction of survival times. The techniques are applied to a dataset of dogs' veterinary records, with the goal of modeling survival from the details of medical visits. As with most other similar datasets, the right-censoring of survival times requires a modification to the standard support vector machine algorithm in order to be dealt with. For this reason, this work includes the writing of a custom SVM implementation.
 
-The thesis begins in \autoref{chsvm} with an overview of support vector machines for regression. CONTINUES
+\subsection*{Thesis structure}
+The thesis begins in chapter \ref{chsvm} with an overview of function estimation and risk minimization, followed by a description of support vector machine regression for both the linear and the nonlinear case.
+
+In chapter \ref{chprepr} the veterinary dataset subject of this thesis is first presented, then explored after a number of preprocessing steps, performed to guarantee data consistency and deal with problems such as NA (not available) values.
+
+Chapter \ref{chmodsel} is about model selection, achieved by tuning the hyperparameters of the support vector regression algorithm. Feature engineering is also considered as a way of obtaining a better performing regression model.
+
+\ldots TODO
+
+\subsection*{Technologies used}
 
 \chapter{Support Vector Machines for Regression}
 \label{chsvm}
@@ -82,7 +91,7 @@ Different bounds for $ R[f] $ based on $ R_{emp}[f] $ have been demonstrated to 
 \begin{equation} \label{vapnikbound}
 R[f] \leq R_{emp}[f] + \sqrt{\dfrac{h(\log (2\ell /h) + 1) - \log (\eta /4)}{\ell}}
 \end{equation}
-valid with a probability of $ 1 - \eta $, with $ \eta $ such that $ 0 \leq \eta \leq 1 $. $ h $ is called the \textit{VC dimension} of the function class $ H $ from which $ f $ is chosen, and it is a measure of the \textit{"capacity"} of the function class. When the "capacity" of $ H $ is very high, the VC dimension increases, leading in this example to a higher upper bound on the risk, and in practice to a propensity towards overfitting and bad performance.
+valid with a probability of $ 1 - \eta $, with $ \eta $ such that $ 0 \leq \eta \leq 1 $. $ h $ is called the \textit{VC dimension} of the function class $ H $ from which $ f $ is chosen, and it is a measure of the \textit{"capacity"} of the function class. When the "capacity" of $ H $ is very high, the VC dimension increases, leading in this example to a higher upper bound on the risk (in the reasonable case of $ h \leq \ell $), and in practice to a propensity towards overfitting and bad performance.
 
 One solution to this problem, useful even outside of classification, is to add a capacity control term to the empirical risk, so that $ H $ is artificially kept small. In the case of support vector machines, the function $ f $ is determined based on a vector of weights $ w $. By using $ \| w \|^2 $ as the capacity control term added to the expression being minimized, the number of different functions obtainable is reduced. This leads to the regularized risk functional:
 \begin{equation} \label{regriskfun}
@@ -123,7 +132,7 @@ c(x,y,f(x)) = \vert y - f(x) \vert_{\varepsilon} = \begin{cases}
 \vert y - f(x) \vert - \varepsilon &\ \text{otherwise}
 \end{cases}
 \end{equation}
-so that predictions laying inside the $ \varepsilon $-insensitive tube are not penalized, while those laying outside are penalized linearly.
+so that predictions laying inside the $ \varepsilon $-insensitive tube are not penalized, while those laying outside are penalized linearly. This is different from the squared distance loss function used in standard least squares regression.
 
 The optimization problem in (\ref{smargprimal}), referred to as the \textit{primal} problem, is more easily solved in its \textit{dual} formulation. This is constructed from the Lagrangian of the objective function:
 \begin{equation} \label{lagrangian}
@@ -135,7 +144,7 @@ L =& \ \dfrac{1}{2}\| w \|^2 + C\sum_{i=1}^{\ell}(\xi_{i} + \xi_{i}^{*}) - \sum_
 \end{equation}
 with $ \eta_{i} $, $ \eta_{i}^{*} $, $ \alpha_{i} $, $ \alpha_{i}^{*} $ being positive Lagrange multipliers.
 
-Because of the saddle point coindition, the partial derivatives of $ L $ with respect to the primal values must be equal to zero at optimality:
+Because of the saddle point coindition, the partial derivatives of $ L $ with respect to the primal variables must be equal to zero at optimality:
 \begin{align}
 \label{partb}
 \partial_{b}L &= \sum_{i=1}^{\ell}(\alpha_{i}^{*} - \alpha_{i}) = 0 \\
@@ -161,11 +170,44 @@ f(x) = \sum_{i=1}^{\ell}(\alpha_{i}-\alpha_{i}^{*})\langle x_{i},x\rangle + b
 \end{equation}
 Each point $ x_{i} $ for which $ (\alpha_{i}-\alpha_{i}^{*}) \neq 0 $ is called a \textit{support vector}, and only these points are needed for a sparse representation of $ f $.  Because of this, the complexity of $ f $ only depends on the number of support vectors, and not on the dimensionality of $ \mathcal{X} $.
 
-\section{Kernels and nonlinearity}
+\section{Nonlinearity and kernels}
+In order to extend support vector machine regression to the nonlinear case, the training points $ x_{i} $ can be preprocessed using a map $ \Phi : \mathcal{X} \rightarrow \mathcal{F} $ into some higher-dimensional feature space $ \mathcal{F} $, and then the standard algorithm can be used. For example, preprocessing the inputs with the map $ \Phi : \mathbb{R}^{2} \rightarrow \mathbb{R}^{3} $ such that $ \Phi(x_{1},x_{2}) = (x_{1}^{2},\sqrt{2}x_{1}x_{2},x_{2}^{2}) $ yields a quadratic function $ f $ after training.
 
-\chapter{The Veterinary Dataset}
-\label{chdataset}
-The real world application of Support Vector Regression explored in this thesis consists in a work of survival analysis on a veterinary dataset.
+However, simple preprocessing can quickly become computationally unfeasible as the dimensionality of the transformed data fed to the algorithm increases. The key observation leading to a computationally cheaper way of obtaining nonlinearity lies in the fact that the support vector machine algorithm never directly makes use of the input points $ x_{i} $, but only of their dot products $ \langle x_{i},x_{j} \rangle $. This means that if a function $ k $ is known such that $ k(x_{i},x_{j}) = \langle\Phi (x_{i}),\Phi (x_{j})\rangle $, then it can be used instead of computing $ \Phi $ directly. $ k $ is called a \textit{kernel} function, and is substituted into the optimization problem:
+\begin{equation} \label{kernelsmargdual}
+\begin{split}
+\text{maximize} &\quad
+-\dfrac{1}{2}\sum_{i,j=1}^{\ell}(\alpha_{i} - \alpha_{i}^{*})(\alpha_{j} - \alpha_{j}^{*})k(x_{i},x_{j}) -\varepsilon\sum_{i=1}^{\ell}(\alpha_{i} + \alpha_{i}^{*}) + \sum_{i=1}^{\ell}y_{i}(\alpha_{i}-\alpha_{i}^{*}) \\
+\text{subject to} &\quad \left\{\begin{split}
+&\sum_{i=1}^{\ell}(\alpha_{i} - \alpha_{i}^{*}) = 0 \\
+&\alpha_{i},\alpha_{i}^{*} \in [0,C]
+\end{split}\right.
+\end{split}
+\end{equation}
+$ f $ and $ w $ are likewise changed:
+\begin{equation} \label{wnonlinear}
+w = \sum_{i=1}^{\ell}(\alpha_{i}-\alpha_{i}^{*})\Phi(x_{i})
+\end{equation}
+\begin{equation} \label{kernelfsvexp}
+f(x) = \sum_{i=1}^{\ell}(\alpha_{i}-\alpha_{i}^{*})k(x_{i},x) + b
+\end{equation}
+with the difference from the linear case being that $ w $ is no longer computed explicitly, while $ f $ only needs its support vectors $ x_{i} $ in their original low-dimensional form to be computed.
+
+An example of an ammissible kernel is the polynomial kernel:
+\begin{equation} \label{polykernel}
+k(x_{i},x_{j}) = (\langle x_{i},x_{j} \rangle + \gamma)^{d}
+\end{equation}
+with $ d \in \mathbb{N} $ and $ \gamma \geq 0 $, which corresponds to feature spaces $ \mathcal{F} $ yielding different kinds of polynomial functions $ f $.
+
+Another example is the gaussian kernel:
+\begin{equation} \label{gausskernel}
+k(x_{i},x_{j}) = e^{-\dfrac{\| x_{i}-x_{j} \|^{2}}{2\gamma^{2}}}
+\end{equation}
+which corresponds to the feature spaces $ \mathcal{F} $ of radial basis functions. In this case, $ \mathcal{F} $ is actually infinite-dimensional, so directly computing $ \Phi $ would have been impossible.
+
+\chapter{Dataset Preprocessing and Exploration}
+\label{chprepr}
+The real world application of support vector regression explored in this thesis consists in a work of survival analysis on a veterinary dataset. Before any meaningful analysis can be carried out, it's important to apply a number of checks and alterations to the raw dataset, so that it becomes suitable for processing. This kind of work, called \textit{preprocessing}, is paramount to successful analysis of real world data. Following these procedures, an initial exploration of the dataset can be made.
 
 \section{Dataset specifics}
 The dataset, provided as a \texttt{.xlsx} file without formulas, is composed of a collection of dogs' veterinary records, separated in 3 sheets: \textit{2006-2016} data $ (161 \times 30) $, \textit{2001-2005} data $ (69 \times 30) $, and a \textit{legend}. Both data sheets have 30 columns, corresponding to the features enumerated in the legend, but only the one from the \textit{2006-2016} period actually uses all of them. Therefore, only the first sheet has been deemed fit for analysis, hereafter referred to as the \texttt{dogs\_2006\_2016} dataset, with a shape of $ (161\; data\; points \times 30\; features) $.
@@ -205,12 +247,8 @@ Here is the list of all features:
 \item \textit{Allo sist}: End-systolic volume of left ventricle not indexed for body surface area.
 \end{itemize}
 
-\chapter{Dataset Preprocessing and Exploration}
-\label{chprepr}
-Before any meaningful analysis can be carried out, it's important to apply a number of checks and alterations to the raw dataset, so that it becomes suitable for processing. This kind of work, called \textit{preprocessing}, is paramount to successful analysis of real world data, such as the veterinary dataset subject of this thesis.
-
 \section{Consistency check}
-The \texttt{dogs\_2006\_2016} dataset was provided as part of a \texttt{.xlsx} sheet without any in-built formulas, so it was deemed sensible to try a number of consistency checks on dependent features, such as dates and times.
+The \texttt{dogs\_2006\_2016} dataset was provided without any in-built formulas, so it was deemed sensible to try a number of consistency checks on dependent features, such as dates and times.
 \subsection*{Date consistency}
 The first check involved testing the validity of the inequality $ Birth\; date \leq First\; visit \leq Therapy\; started \leq Date\; of\; death $. This check produced 42 errors, all from data points for which $ Therapy\; started < First\; visit $, while in all the remaining cases the two values were equal. Then it became clear that the correct interpretation of the data corresponds in fact to the inequality $ Birth\; date \leq Therapy\; started \leq First\; visit \leq Date\; of\; death $. \textit{Therapy started} is equal to \textit{First visit} when the therapy started on the first visit, while it is set to an earlier date if the dog was already undergoing therapy under different supervision.
 \subsection*{Survival time consistency}
@@ -255,6 +293,13 @@ This problem, discussed more in depth later in this thesis, inspired a modificat
 
 \chapter{Model Training and Selection}
 \label{chmodsel}
+Training a learning algorithm on actual data brings about many issues.
+
+Firstly, even after preprocessing the dataset, the features have to be scaled so that they are not too differently distributed and they don't cause numerical problems. It may even be useful to remove outliers from the training data. Furthermore, the number and nature of feature themselves may need to be altered in order to obtain a better performing model, in what is called \textit{feature engineering}.
+
+But most importantly, models have to be scored and selected, as algorithms such as support vector machines depend on a number of hyperparameters that cannot be determined a priori. Common techniques for model selection are holdout and K-fold cross-validation.
+
+\section{The training pipeline}
 
 \section{Cross-validation and repeated holdout}
 

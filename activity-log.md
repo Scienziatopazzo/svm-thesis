@@ -1,5 +1,10 @@
 # SVMRegression - Research Activity Log
 
+## 14th April 2018
+* Completed draft of *Support Vector Machines for Regression* chapter in thesis.
+* Updated *Introduction*.
+* Started *Model Training and Selection* chapter in thesis.
+
 ## 12th April 2018
 Written first two sections in *Support Vector Machines for Regression* chapter in thesis.
 
