@@ -15,6 +15,9 @@
 \newtheorem{myteor}{Theorem}[section]
 \newenvironment{teor}{\begin{myteor}\sl}{\end{myteor}}
 
+\renewcommand{\labelenumii}{\theenumii}
+\renewcommand{\theenumii}{\theenumi.\arabic{enumii}.}
+
 \begin{document}
 \title{SV-based regression techniques for survival analysis: a case study on veterinary data}
 \author{Elvis NAVA}
@@ -299,12 +302,67 @@ Firstly, even after preprocessing the dataset, the features have to be scaled so
 
 But most importantly, models have to be scored and selected, as algorithms such as support vector machines depend on a number of hyperparameters that cannot be determined a priori. Common techniques for model selection are holdout and K-fold cross-validation.
 
-\section{The training pipeline}
+\section{Feature transformation and filtering}
+\subsection*{Feature scalers}
+Some machine learning algorithms assume that input features have zero mean and unit variance. Even if such assumptions are not needed, unbalanced features may cause numerical problems, affecting computation speed dramatically. Therefore, the scaling of data is commonplace in the first stages of training pipelines. Scikit-learn provides many scalers, such as:
+\begin{itemize}
+\item \textbf{StandardScaler}. Standardizes features by removing the mean and scaling to unit variance.
+\item \textbf{RobustScaler}. Scales features using statistics robust to outliers.
+\item \textbf{QuantileTransformer}. Transformes features to make them follow a predefined distribution.
+\end{itemize}
+The scaler is "fitted" on training data, and can then be used to transform both training data and new points.
 
-\section{Cross-validation and repeated holdout}
+\subsection*{Outlier detection}
+The presence of outliers in the training data may affect negatively the learning of patterns and meaningful relationships between features. Thus, it may be useful to apply some sort of outlier filtering before training.
+
+There are many different ways of detecting outliers in multidimensional data. An example of unsupervised outlier detection is the use of Local Outlier Factor (LOF), implemented in scikit-learn with the class \textit{LocalOutlierFactor}. LOF computes anomaly scores measuring the local deviation of density of a given sample with respect to its neighbors.
 
 \section{Feature engineering}
+\textit{Feature engineering} consists in selecting, creating and combining features before feeding them into a machine learning model.
 
+\subsection*{New feature: Therapy beginning to first visit time delta}
+The \textit{Therapy started} column in the dataset is not always equal to \textit{First visit}. In some cases, first visits were performed when a patient had already started treatment under different supervision. This time difference is however not expressed in any apposite feature, and is therefore lost after the removal of dates when cleaning the dataset from columns not useful for learning.
+
+The new feature \textit{Therapy to visit} can thus be introduced, computed as $ First\, visit\, -\, Therapy\, started $ expressed in days. Its histogram, joint plot with \textit{Survival time} and the new correlation matrix can be seen in Fig. XX.
+
+\subsection*{Removing subsets of highly correlated features}
+As noticed in the original exploratory analysis, some features in the dataset are highly correlated with each other. Removing features with high correlation to others has the effect of reducing the dimensionality of the feature space, simplifying learning, without losing too much useful information.
+
+Two ways of doing this in the current dataset is either to remove \textit{IP Gravity}, \textit{FS \%}, \textit{ESVI}, \textit{Allo diast} and \textit{Allo sist}; or to remove \textit{IP Gravity}, \textit{FE \%}, \textit{EDVI}, \textit{ESVI} and \textit{Allo sist}. The resulting correlation matrices are shown in Fig. YY.
+
+\section{Cross-validation and repeated holdout}
+In order to estimate the out-of-sample performance of a model, the most commonly taken approach is to split the original dataset into a training set and a test set. Only the training set is used in the learning, while the test set is set aside and not tampered with until the end, so it can be used to obtain a score of the learned model by comparing the test targets with the model's predictions obtained from test data.
+
+However, most machine learning algorithms such as support vector machines depend on a number of hyperparameters that need to be chosen often arbitrarily, before a model can be obtained. This problem of \textit{model selection} can be solved by further splitting the training set into training and validation sets, and performing a grid search of all possible hyperparameter combinations. A model learned from the training set using a combination of hyperparameters can be scored using the validation set, without touching the original test set.
+
+\subsection*{K-fold cross-validation}
+A sophisticated method of model selection is cross-validation. The training/validation set is partitioned into $ K $ subsets, and for each hyperparamter combination, the model is trained $ K $ times, using each time a different subset as validation set, and uniting the $ K - 1 $ remaining ones as a training set. The $ K $ scores obtained are then averaged, and this average is counted as the score for the current hyperaparameter combination in the grid search.
+
+An implementation of cross-validation grid search can be found in scikit-learn with the class \textit{CVGridSearch}.
+
+\subsection*{Holdout}
+Much simpler than cross-validation, holdout validation consists in splitting once training and validation sets, and then performing a grid search on the hyperparameter space by training and scoring every combination only once. It is computationally easier than cross-validation, but can be less precise in its score.
+
+A custom, parallelized implementation has been made for the purpose of this work, with the python function \texttt{SVR\_gridsearch\_holdout}. It supports scikit-learn estimators, as well as custom-made ones.
+
+In this work's training pipeline, holdout is repeated a certain number of times, and the best result of these runs is kept as the final model. For this reason, it is referred to as "repeated holdout".
+
+\section{The training pipeline}
+The process of training a model is broken up into several steps leading to the eventual application of the support vector machine algorithm. This pipeline has been implemented with the use of python libraries \textbf{numpy} \cite{numpy}, \textbf{pandas} \cite{pandas}, \textbf{scikit-learn} \cite{sklearn}, and of custom written functions. It is structured as follows:
+\begin{enumerate}
+\item The python function \texttt{load\_df\_dogs\_2016} reads the dataset from the .xlsx file and returns a \textit{pandas dataframe}. All the preprocessing corrections and alterations are selectively performed in accordance to the calling parameters. These include the dropping of useless columns, the correction of survival time and age values, and the application of \textit{NA} and \textit{censoring policies}. At this stage it's possible to apply \textit{feature engineering} by selecting only a subset of useful columns or introducing certain new ones.
+\item The python function \texttt{load\_skl\_dogs\_2016}, having called the previous one, obtains the dataset as a pandas dataframe and returns it as a \textit{scikit-learn Bunch object}. The survival times are separated from the other features, and both converted to \textit{numpy ndarrays}, accessible from the \texttt{target} and \texttt{data} fields of the Bunch object. There is an option to already apply scaling and outlier filtering, but it is not used at this stage in the usual pipeline.
+\item The python function \texttt{SVR\_gridsearch\_holdout}, taking as main input the data matrix \textit{X}, the target array \textit{y}, the \textit{estimator} class (which can be an SVR implementation from a library or a custom one), and the \textit{parameter grid} of model hyperparameters, includes a number of steps:
+\begin{enumerate}
+\item Both \textit{X} and \textit{y} are split into training/validation and test sets using the \texttt{train\_test\_split} function from scikit-learn.
+\item The training/validation set previously obtained is further split, in accordance with holdout validation, into training and validation sets with \texttt{train\_test\_split}.
+\item If an outlier detection class has been given, it is used to detect and remove outliers from the training set. An example of one such class is \textit{LocalOutlierFactor} from scikit-learn.
+\item If a scaler class has been given, the scaler is fitted on the training set, and then used to scale both training and validation sets. The scaler most commonly used is \textit{StandardScaler} from scikit-learn.
+\item A gridsearch is performed on the given \textit{parameter grid}, with the goal of finding the combination of hyperparameters leading to the best performing model. For each generated combination, the support vector regression algorithm implemented in the \textit{estimator} class is trained on the training set, and then scored using its predictions for the validation set targets. The combination corresponding to the best score is memorized. The gridsearch is parallelized, using the \textit{multiprocessing} python module.
+\item After finding the best hyperparameters, training and validation sets are joined again. Outlier detection is performed on the original training/validation set, then the Scaler is fitted on the training/validation set and applied to both the training/validation set and the test set. The support vector regression \textit{estimator} is trained on the whole training/validation set using the obtained hyperparameters, and then scored on the test set. The hyperparameters and the score are then returned.
+\end{enumerate}
+\item The whole of \texttt{SVR\_gridsearch\_holdout} is repeated a certain number of times, and only the best resulting model is kept.
+\end{enumerate}
 
 \chapter{Alternative SVM Models for Censored Datasets}
 \label{chaltsvm}
@@ -332,6 +390,15 @@ Smola, Alex J., and Bernhard Schölkopf. "A tutorial on support vector regressio
 
 \bibitem{vapnik95}
 Vapnik V., "The Nature of Statistical Learning Theory." Springer, New York (1995).
+
+\bibitem{numpy}
+Oliphant T. E., "A guide to NumPy." USA: Trelgol Publishing, (2006).
+
+\bibitem{pandas}
+McKinney W., "Data Structures for Statistical Computing in Python." Proceedings of the 9th Python in Science Conference, 51-56 (2010)
+
+\bibitem{sklearn}
+Pedregosa, Fabian, et al. "Scikit-learn: Machine learning in Python." Journal of machine learning research 12.Oct (2011): 2825-2830.
 
 %
 \end{thebibliography}
