@@ -1,5 +1,13 @@
 # SVMRegression - Research Activity Log
 
+## 21st April 2018
+* Tested customSVR (Standard) on dogs dataset. Results equal to sklearn svr.
+* Added SVCR in `svr.py`, and restructured the file using an abstract class
+* Modified `training.py` to deal with censor deltas (so they are not scaled) (old method of scaling in `load_skl_dogs_2016` is untouched, needs to be adjusted)
+* Created notebook `Custom-SVR-Censoring`
+* TODO: different scoring functions for SVRs, chooseable in gridsearch and testing
+* TODO: fix cases in which b cannot be computed
+
 ## 17th April 2018
 Completed draft of *Model Training and Selection*.
 

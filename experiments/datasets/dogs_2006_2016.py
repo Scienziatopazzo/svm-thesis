@@ -122,9 +122,16 @@ dropDead = ["Dead", "MC"]
 dropDates = ["Birth date", "First visit", "Therapy started", "Date of death"]
 
 #load sklearn Bunch object with Survival time as target
-def load_skl_dogs_2016(NApolicy='drop', dropColumns=dropNonNumeric+dropIrrelevant+dropDead+dropDates, censoringPolicy='none', newFeats=True, scaler=None, outlier_detector=None):
+def load_skl_dogs_2016(NApolicy='drop', dropColumns=dropNonNumeric+dropIrrelevant+dropDead+dropDates, censoringPolicy='none', newFeats=True, scaler=None, outlier_detector=None, censSVR=False):
+    # If the results will have to be trated with a censored SVR, don't drop "Dead" column
+    dropCols = dropColumns
+    if censSVR:
+        if "Dead" in dropCols:
+            dropCols.remove("Dead")
+        if censoringPolicy is not 'none':
+            raise ValueError("Cannot use a censSVR with crude censoring policies, please leave the default ('none')")
 
-    data = load_df_dogs_2016(NApolicy = NApolicy, dropColumns = dropColumns, censoringPolicy=censoringPolicy, newFeats=newFeats)
+    data = load_df_dogs_2016(NApolicy = NApolicy, dropColumns = dropCols, censoringPolicy=censoringPolicy, newFeats=newFeats)
 
     if outlier_detector is not None:
         y_outliers = outlier_detector.fit_predict(data.as_matrix())
@@ -136,6 +143,12 @@ def load_skl_dogs_2016(NApolicy='drop', dropColumns=dropNonNumeric+dropIrrelevan
     targetArray = data.loc[:, "Survival time"].as_matrix()
     data.drop("Survival time", axis="columns", inplace=True)
 
+    #If censSVR, make sure the "Dead" column is the last of the data matrix
+    if censSVR:
+        cols = list(data.columns)
+        cols.remove("Dead")
+        cols.append("Dead")
+        data = data[cols]
     featureNames = list(data.columns)
     dataMatrix = data.as_matrix()
 
