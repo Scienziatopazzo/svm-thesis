@@ -5,7 +5,7 @@ from multiprocessing import Process, Queue
 from queue import Empty
 
 #Grid search model selection for SVR with holdout.
-def SVR_gridsearch_holdout(X, y, estimator, param_grid, test_size, val_size, scaler=None, outlier_detector=None, nprocs=8, censSVR=False):
+def SVR_gridsearch_holdout(X, y, estimator, param_grid, test_size, val_size, scaler=None, outlier_detector=None, nprocs=8, censSVR=False, custom_metric=None):
     X_TrainAndValidation, X_Test, y_TrainAndValidation, y_Test = train_test_split(X, y.astype('float64'), test_size=test_size)
     X_Train, X_Validation, y_Train, y_Validation = train_test_split(X_TrainAndValidation, y_TrainAndValidation, test_size=val_size)
 
@@ -48,7 +48,7 @@ def SVR_gridsearch_holdout(X, y, estimator, param_grid, test_size, val_size, sca
                     break
 
         p_total_num += 1
-        p = Process(target=proc_train, args=(b_queue, estimator, X_Train, y_Train, X_Validation, y_Validation, params))
+        p = Process(target=proc_train, args=(b_queue, estimator, X_Train, y_Train, X_Validation, y_Validation, params, custom_metric))
         p.start()
 
     while p_total_num > 0:
@@ -79,18 +79,18 @@ def SVR_gridsearch_holdout(X, y, estimator, param_grid, test_size, val_size, sca
             X_Test = np.concatenate((X_Test,X_TestDeltas.reshape((-1,1))), axis=1)
 
     best_svr.fit(X_TrainAndValidation, y_TrainAndValidation)
-    test_score = best_svr.score(X_Test, y_Test)
+    test_score = best_svr.score(X_Test, y_Test, metric=custom_metric) if custom_metric is not None else best_svr.score(X_Test, y_Test)
 
     return (best_params, test_score)
 
-def proc_train(b_queue, estimator, X_Train, y_Train, X_Validation, y_Validation, fit_params):
+def proc_train(b_queue, estimator, X_Train, y_Train, X_Validation, y_Validation, fit_params, custom_metric):
     svr = estimator(**fit_params)
     svr.fit(X_Train, y_Train)
-    score = svr.score(X_Validation, y_Validation)
+    score = svr.score(X_Validation, y_Validation, metric=custom_metric) if custom_metric is not None else svr.score(X_Validation, y_Validation)
     b_queue.put((score, fit_params))
 
 #Finally testing a parameter set for an estimator on random test splits
-def random_split_tests(X, y, estimator, params, test_size, ntests=10, scaler=None, outlier_detector=None, censSVR=False):
+def random_split_tests(X, y, estimator, params, test_size, ntests=10, scaler=None, outlier_detector=None, censSVR=False, custom_metric=None):
     mean_score = 0
     for i in range(ntests):
         X_Train, X_Test, y_Train, y_Test = train_test_split(X, y.astype('float64'), test_size=test_size)
@@ -115,5 +115,5 @@ def random_split_tests(X, y, estimator, params, test_size, ntests=10, scaler=Non
 
         best_svr = estimator(**params)
         best_svr.fit(X_Train, y_Train)
-        mean_score += best_svr.score(X_Test, y_Test)/ntests
+        mean_score += best_svr.score(X_Test, y_Test, metric=custom_metric)/ntests if custom_metric is not None else best_svr.score(X_Test, y_Test)/ntests
     return mean_score

@@ -128,8 +128,6 @@ def load_skl_dogs_2016(NApolicy='drop', dropColumns=dropNonNumeric+dropIrrelevan
     if censSVR:
         if "Dead" in dropCols:
             dropCols.remove("Dead")
-        if censoringPolicy is not 'none':
-            raise ValueError("Cannot use a censSVR with crude censoring policies, please leave the default ('none')")
 
     data = load_df_dogs_2016(NApolicy = NApolicy, dropColumns = dropCols, censoringPolicy=censoringPolicy, newFeats=newFeats)
 

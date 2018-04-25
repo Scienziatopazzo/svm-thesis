@@ -1,12 +1,18 @@
 # SVMRegression - Research Activity Log
 
+## 25th April 2018
+* Refactored svr code by splitting it into `svr.py` and `svrcens.py`.
+* Introduced different scoring functions, implemented "c-index".
+* Modified c-index from the original formulation, so that in the case of *y_pred[i] == y_pred[j]* the index doesn't automatically assume a correct ordering (because in this way a simple constant model would always obtain a perfect score).
+* Modified `Custom-SVR-Censoring` tests so that c-index is used as the scoring metric. The original SVR and SVCR perform almost equally (with an apparently somewhat good score).
+
 ## 21st April 2018
 * Tested customSVR (Standard) on dogs dataset. Results equal to sklearn svr.
-* Added SVCR in `svr.py`, and restructured the file using an abstract class
-* Modified `training.py` to deal with censor deltas (so they are not scaled) (old method of scaling in `load_skl_dogs_2016` is untouched, needs to be adjusted)
-* Created notebook `Custom-SVR-Censoring`
-* TODO: different scoring functions for SVRs, chooseable in gridsearch and testing
-* TODO: fix cases in which b cannot be computed
+* Added SVCR in `svr.py`, and restructured the file using an abstract class.
+* Modified `training.py` to deal with censor deltas (so they are not scaled) (old method of scaling in `load_skl_dogs_2016` is untouched, needs to be adjusted).
+* Created notebook `Custom-SVR-Censoring`.
+* TODO: different scoring functions for SVRs, chooseable in gridsearch and testing.
+* TODO: fix cases in which b cannot be computed.
 
 ## 17th April 2018
 Completed draft of *Model Training and Selection*.
