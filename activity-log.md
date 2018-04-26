@@ -1,5 +1,11 @@
 # SVMRegression - Research Activity Log
 
+## 26th April 2018
+* Implemented SVRC in `svrcens.py`. First test on dogs dataset yielded scores similar to those of other methods.
+* Implemented RankSVMC (non simplified) in `svrcens.py`. The number of constraints make it too slow to run.
+* Implemented RankSVMC with simplified constrainst in `svrcens.py`. First test on dogs dataset yielded scores slightly worse than those of other methods.
+* Implemented Model 1 from *Van Belle et al.* in `svrcens.py`. First test on dogs dataset yielded scores similar to those of other methods.
+
 ## 25th April 2018
 * Refactored svr code by splitting it into `svr.py` and `svrcens.py`.
 * Introduced different scoring functions, implemented "c-index".

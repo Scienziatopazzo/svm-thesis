@@ -207,3 +207,318 @@ class SVCR(AbstractCensSVR):
 
     def hypothesis_f(self, x):
         return self.kern_sum(x[:-1]) + self.b
+
+
+class SVRC(AbstractCensSVR):
+    '''
+    SVRC for censored data
+    parameters:
+    (float,float) C     Penalty parameters Cleft and Cright, penalizing Ys left and right of the real values for non-censored data points. (Cleft<Cright) (default=(1.0,2.0))
+    (float,float) CC    Penalty parameters CCleft and CCright, penalizing Ys left and right of the real values for censored data points. (Cleft>Cright) (default=(2.0,1.0))
+    float epsilon       Parameter specifying no-penalty epsilon-tube for non-censored data points. (default=0.1)
+    float epsilonC      Parameter specifying no-penalty epsilon-tube for censored data points. (default=0.1)
+    string kernel       Specifies the kernel type: 'linear', 'poly', 'rbf'. (default='rbf')
+    float gamma         Kernel coefficient for 'rbf' and 'poly'. If 'auto', then gamma=1/n_features. (default='auto')
+    int degree          Degree of the polynomial kernel 'poly', ignored by other kernels (default=3)
+    float coef0         Independent term in polynomial kernel 'poly', ignored by other kernels (default=0.0)
+    bool verbose        Enable verbose Gurobi output. (default=False)
+    '''
+    def __init__(self, C=(1.0,2.0), CC=(2.0,1.0), epsilon=0.1, epsilonC=0.1, kernel='rbf', gamma='auto', degree=3, coef0=0, verbose=False):
+        self.C = C
+        self.CC = CC
+        self.epsilon = epsilon
+        self.epsilonC = epsilonC
+        super().__init__(kernel=kernel, gamma=gamma, degree=degree, coef0=coef0, verbose=verbose)
+
+    def fit(self, X, y):
+        '''
+        fits the model on the data
+        parameters:
+        ndarray X   numpy matrix of data points (shape: n_samples x (n_features+1))
+                    IMPORTANT: last column of X corresponds to censoring indicators (deltas)
+        ndarray y   numpy array of target values (shape: n_samples x 1)
+        '''
+        if len(X) != len(y):
+            raise ValueError('data and labels have different length')
+
+        self.reset()
+
+        #Separating censoring indicators (deltas) from rest of input data
+        self.deltas = X[:,-1]
+        X = X[:,0:-1]
+
+        l = len(X)
+        a = self.model.addVars(l, 2, lb=0.0, vtype=gpy.GRB.CONTINUOUS, name='a')
+        self.model.update()
+
+        fobj_kern = -(1/2) * gpy.quicksum((a[i,0] - a[i,1])*(a[j,0] - a[j,1])*self.k(X[i],X[j]) for i in range(l) for j in range(l))
+        fobj_eps = - gpy.quicksum((self.deltas[i]*self.epsilon + (1 - self.deltas[i])*self.epsilonC)*(a[i,0] + a[i,1]) for i in range(l))
+        fobj_y = gpy.quicksum(y[i]*(a[i,0] - a[i,1]) for i in range(l))
+        self.model.setObjective(fobj_kern + fobj_eps + fobj_y, gpy.GRB.MAXIMIZE)
+
+        constr = gpy.quicksum(a[i,0] - a[i,1] for i in range(l))
+        self.model.addConstr(constr, gpy.GRB.EQUAL, 0)
+
+        for i in range(l):
+            self.model.addConstr(a[i,0], gpy.GRB.LESS_EQUAL, self.deltas[i]*self.C[0] + (1 - self.deltas[i])*self.CC[0])
+            self.model.addConstr(a[i,1], gpy.GRB.LESS_EQUAL, self.deltas[i]*self.C[1] + (1 - self.deltas[i])*self.CC[1])
+
+        self.model.optimize()
+        if self.model.Status != gpy.GRB.OPTIMAL:
+            raise ValueError('optimal solution not found!')
+
+        #Saving Support Vectors and multipliers
+        for i in range(l):
+            if abs(a[i,0].x - a[i,1].x) >= 1/(l**2):
+                self.sv.append(X[i])
+                self.sv_w.append(a[i,0].x - a[i,1].x)
+
+        #Computing b
+        maxlb = -float('inf')
+        minub = float('inf')
+        for i in range(l):
+            bound = -(self.deltas[i]*self.epsilon + (1 - self.deltas[i])*self.epsilonC) + y[i] - self.kern_sum(X[i])
+            if (a[i,0].x < (self.deltas[i]*self.C[0] + (1 - self.deltas[i])*self.CC[0]) or a[i,1].x > 1/(l**2)) and bound > maxlb:
+                maxlb = bound
+            if (a[i,0].x > 1/(l**2) or a[i,1].x < self.deltas[i]*self.C[1] + (1 - self.deltas[i])*self.CC[1]) and bound < minub:
+                minub = bound
+            if maxlb == minub:
+                self.b = bound
+                break
+        if maxlb!=minub:
+            raise ValueError('cannot compute b')
+
+    def kern_sum(self, x):
+        ks = 0
+        for i in range(len(self.sv)):
+            ks += self.sv_w[i] * self.k(self.sv[i], x)
+        return ks
+
+    def hypothesis_f(self, x):
+        return self.kern_sum(x[:-1]) + self.b
+
+
+class RankSVMC(AbstractCensSVR):
+    '''
+    RankSVMC for censored data
+    parameters:
+    float C         Penalty parameter C. (default=1.0)
+    string kernel   Specifies the kernel type: 'linear', 'poly', 'rbf'. (default='rbf')
+    float gamma     Kernel coefficient for 'rbf' and 'poly'. If 'auto', then gamma=1/n_features. (default='auto')
+    int degree      Degree of the polynomial kernel 'poly', ignored by other kernels (default=3)
+    float coef0     Independent term in polynomial kernel 'poly', ignored by other kernels (default=0.0)
+    bool verbose    Enable verbose Gurobi output. (default=False)
+    '''
+    def __init__(self, C=1.0, kernel='rbf', gamma='auto', degree=3, coef0=0, verbose=False):
+        self.C = C
+        super().__init__(kernel=kernel, gamma=gamma, degree=degree, coef0=coef0, verbose=verbose)
+
+    def reset(self):
+        super().reset()
+        self.sv2 = []
+
+    def fit(self, X, y):
+        '''
+        fits the model on the data
+        parameters:
+        ndarray X   numpy matrix of data points (shape: n_samples x n_features)
+        ndarray y   numpy array of target values (shape: n_samples x 1)
+        '''
+        if len(X) != len(y):
+            raise ValueError('data and labels have different length')
+
+        self.reset()
+
+        #Separating censoring indicators (deltas) from rest of input data
+        self.deltas = X[:,-1]
+        X = X[:,0:-1]
+
+        l = len(X)
+        # Compiling a list of data indicex pairs (i,j) for which y[i]>y[j] and comp(i,j)==1
+        ind = []
+        for i in range(l):
+            for j in range(l):
+                if y[i] > y[j] and self.comp(self.deltas, y, i, j) == 1:
+                    ind.append((i,j))
+
+        a = self.model.addVars(len(ind), lb=0.0, ub=self.C, vtype=gpy.GRB.CONTINUOUS, name='a')
+        self.model.update()
+
+        fobj_kern = -(1/2) * gpy.quicksum(a[i]*a[j]*(self.k(X[ind[i][0]],X[ind[j][0]]) - self.k(X[ind[i][1]],X[ind[j][0]]) - self.k(X[ind[i][0]],X[ind[j][1]]) + self.k(X[ind[i][1]],X[ind[j][1]])) for i in range(len(ind)) for j in range(len(ind)))
+        fobj_a = gpy.quicksum(a[i] for i in range(len(ind)))
+        self.model.setObjective(fobj_kern + fobj_a, gpy.GRB.MAXIMIZE)
+
+        self.model.optimize()
+        if self.model.Status != gpy.GRB.OPTIMAL:
+            raise ValueError('optimal solution not found!')
+
+        #Saving Support Vectors and multipliers
+        for i in range(len(ind)):
+            if a[i].x >= 1/(l**2):
+                self.sv.append(X[ind[i][0]])
+                self.sv2.append(X[ind[i][1]])
+                self.sv_w.append(a[i].x)
+
+    def kern_sum(self, x):
+        ks = 0
+        for i in range(len(self.sv)):
+            ks += self.sv_w[i] * (self.k(self.sv[i], x) - self.k(self.sv2[i], x))
+        return ks
+
+    def hypothesis_f(self, x):
+        return self.kern_sum(x[:-1])
+
+
+class SimpleRankSVMC(AbstractCensSVR):
+    '''
+    RankSVMC for censored data, with simplified constraints
+    parameters:
+    float C         Penalty parameter C. (default=1.0)
+    string kernel   Specifies the kernel type: 'linear', 'poly', 'rbf'. (default='rbf')
+    float gamma     Kernel coefficient for 'rbf' and 'poly'. If 'auto', then gamma=1/n_features. (default='auto')
+    int degree      Degree of the polynomial kernel 'poly', ignored by other kernels (default=3)
+    float coef0     Independent term in polynomial kernel 'poly', ignored by other kernels (default=0.0)
+    bool verbose    Enable verbose Gurobi output. (default=False)
+    '''
+    def __init__(self, C=1.0, kernel='rbf', gamma='auto', degree=3, coef0=0, verbose=False):
+        self.C = C
+        super().__init__(kernel=kernel, gamma=gamma, degree=degree, coef0=coef0, verbose=verbose)
+
+    def reset(self):
+        super().reset()
+        self.sv2 = []
+
+    def fit(self, X, y):
+        '''
+        fits the model on the data
+        parameters:
+        ndarray X   numpy matrix of data points (shape: n_samples x n_features)
+        ndarray y   numpy array of target values (shape: n_samples x 1)
+        '''
+        if len(X) != len(y):
+            raise ValueError('data and labels have different length')
+
+        self.reset()
+
+        #Separating censoring indicators (deltas) from rest of input data
+        self.deltas = X[:,-1]
+        X = X[:,0:-1]
+
+        l = len(X)
+        # Compiling a list of data indicex pairs (i,j) for which y[i]>y[j] and comp(i,j)==1
+        # IMPORTANT FOR SIMPLIFICATION: only the j with the maximum y[j] is chosen for each i
+        ind = []
+        for i in range(l):
+            maxy_val = -float('inf')
+            maxy_j = 0
+            for j in range(l):
+                if y[i] > y[j] and self.comp(self.deltas, y, i, j) == 1:
+                    if y[j] > maxy_val:
+                        maxy_val = y[j]
+                        maxy_j = j
+            if maxy_val > -float('inf'):
+                ind.append((i,maxy_j))
+
+        a = self.model.addVars(len(ind), lb=0.0, ub=self.C, vtype=gpy.GRB.CONTINUOUS, name='a')
+        self.model.update()
+
+        fobj_kern = -(1/2) * gpy.quicksum(a[i]*a[j]*(self.k(X[ind[i][0]],X[ind[j][0]]) - self.k(X[ind[i][1]],X[ind[j][0]]) - self.k(X[ind[i][0]],X[ind[j][1]]) + self.k(X[ind[i][1]],X[ind[j][1]])) for i in range(len(ind)) for j in range(len(ind)))
+        fobj_a = gpy.quicksum(a[i] for i in range(len(ind)))
+        self.model.setObjective(fobj_kern + fobj_a, gpy.GRB.MAXIMIZE)
+
+        self.model.optimize()
+        if self.model.Status != gpy.GRB.OPTIMAL:
+            raise ValueError('optimal solution not found!')
+
+        #Saving Support Vectors and multipliers
+        for i in range(len(ind)):
+            if a[i].x >= 1/(l**2):
+                self.sv.append(X[ind[i][0]])
+                self.sv2.append(X[ind[i][1]])
+                self.sv_w.append(a[i].x)
+
+    def kern_sum(self, x):
+        ks = 0
+        for i in range(len(self.sv)):
+            ks += self.sv_w[i] * (self.k(self.sv[i], x) - self.k(self.sv2[i], x))
+        return ks
+
+    def hypothesis_f(self, x):
+        return self.kern_sum(x[:-1])
+
+class Model1(AbstractCensSVR):
+    '''
+    Model 1 SVR for censored data (from Van Belle paper)
+    parameters:
+    float C         Penalty parameter C. (default=1.0)
+    string kernel   Specifies the kernel type: 'linear', 'poly', 'rbf'. (default='rbf')
+    float gamma     Kernel coefficient for 'rbf' and 'poly'. If 'auto', then gamma=1/n_features. (default='auto')
+    int degree      Degree of the polynomial kernel 'poly', ignored by other kernels (default=3)
+    float coef0     Independent term in polynomial kernel 'poly', ignored by other kernels (default=0.0)
+    bool verbose    Enable verbose Gurobi output. (default=False)
+    '''
+    def __init__(self, C=1.0, kernel='rbf', gamma='auto', degree=3, coef0=0, verbose=False):
+        self.C = C
+        super().__init__(kernel=kernel, gamma=gamma, degree=degree, coef0=coef0, verbose=verbose)
+
+    def reset(self):
+        super().reset()
+        self.sv2 = []
+
+    def fit(self, X, y):
+        '''
+        fits the model on the data
+        parameters:
+        ndarray X   numpy matrix of data points (shape: n_samples x n_features)
+        ndarray y   numpy array of target values (shape: n_samples x 1)
+        '''
+        if len(X) != len(y):
+            raise ValueError('data and labels have different length')
+
+        self.reset()
+
+        #Separating censoring indicators (deltas) from rest of input data
+        self.deltas = X[:,-1]
+        X = X[:,0:-1]
+
+        l = len(X)
+        # Compiling a list of data indicex pairs (i,j) for which y[i]>y[j] and comp(i,j)==1
+        # IMPORTANT FOR SIMPLIFICATION: only the j with the maximum y[j] is chosen for each i
+        ind = []
+        for i in range(l):
+            maxy_val = -float('inf')
+            maxy_j = 0
+            for j in range(l):
+                if y[i] > y[j] and self.comp(self.deltas, y, i, j) == 1:
+                    if y[j] > maxy_val:
+                        maxy_val = y[j]
+                        maxy_j = j
+            if maxy_val > -float('inf'):
+                ind.append((i,maxy_j))
+
+        a = self.model.addVars(len(ind), lb=0.0, ub=self.C, vtype=gpy.GRB.CONTINUOUS, name='a')
+        self.model.update()
+
+        fobj_kern = -(1/2) * gpy.quicksum(a[i]*a[j]*(self.k(X[ind[i][0]],X[ind[j][0]]) - self.k(X[ind[i][1]],X[ind[j][0]]) - self.k(X[ind[i][0]],X[ind[j][1]]) + self.k(X[ind[i][1]],X[ind[j][1]])) for i in range(len(ind)) for j in range(len(ind)))
+        fobj_a = gpy.quicksum(a[i]*(y[ind[i][0]] - y[ind[i][1]]) for i in range(len(ind)))
+        self.model.setObjective(fobj_kern + fobj_a, gpy.GRB.MAXIMIZE)
+
+        self.model.optimize()
+        if self.model.Status != gpy.GRB.OPTIMAL:
+            raise ValueError('optimal solution not found!')
+
+        #Saving Support Vectors and multipliers
+        for i in range(len(ind)):
+            if a[i].x >= 1/(l**2):
+                self.sv.append(X[ind[i][0]])
+                self.sv2.append(X[ind[i][1]])
+                self.sv_w.append(a[i].x)
+
+    def kern_sum(self, x):
+        ks = 0
+        for i in range(len(self.sv)):
+            ks += self.sv_w[i] * (self.k(self.sv[i], x) - self.k(self.sv2[i], x))
+        return ks
+
+    def hypothesis_f(self, x):
+        return self.kern_sum(x[:-1])
