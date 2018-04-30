@@ -1,5 +1,8 @@
 # SVMRegression - Research Activity Log
 
+## 30th April 2018
+* Implemented Model 2 from *Van Belle et al.* in `svrcens.py`. Had to fix a typo in the lagrangian dual specified in the paper. First test on dogs dataset yielded scores similar to those of other methods.
+
 ## 26th April 2018
 * Implemented SVRC in `svrcens.py`. First test on dogs dataset yielded scores similar to those of other methods.
 * Implemented RankSVMC (non simplified) in `svrcens.py`. The number of constraints make it too slow to run.
