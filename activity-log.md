@@ -1,5 +1,9 @@
 # SVMRegression - Research Activity Log
 
+## 9th May 2018
+* Modified repeated holdout procedure in `training.py` so that the repetition happens before using the test set (added 'runs' attribute).
+* Updated all relevant notebooks by running this version of holdout. Scores for R2 scoring are way worse, c-index scores are not. TODO: long computations with averaged test scores.
+
 ## 30th April 2018
 * Implemented Model 2 from *Van Belle et al.* in `svrcens.py`. Had to fix a typo in the lagrangian dual specified in the paper. First test on dogs dataset yielded scores similar to those of other methods.
 
