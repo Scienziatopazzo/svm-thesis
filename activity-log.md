@@ -1,5 +1,9 @@
 # SVMRegression - Research Activity Log
 
+## 15th-16th May 2018
+* Implemented corrections in thesis.
+* Started *Alternative SVR Models for Censored Datasets* chapter in thesis.
+
 ## 9th May 2018
 * Modified repeated holdout procedure in `training.py` so that the repetition happens before using the test set (added 'runs' attribute).
 * Updated all relevant notebooks by running this version of holdout. Scores for R2 scoring are way worse, c-index scores are not. TODO: long computations with averaged test scores.

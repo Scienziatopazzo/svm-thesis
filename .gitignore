@@ -9,3 +9,6 @@ env/
 *.synctex.gz
 *.toc
 *.pdf
+*.bbl
+*.blg
+*.dvi
