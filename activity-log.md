@@ -1,5 +1,8 @@
 # SVMRegression - Research Activity Log
 
+## 17th May 2018
+* Added subsections for *SVRC* and *RankSVMC*.
+
 ## 15th-16th May 2018
 * Implemented corrections in thesis.
 * Started *Alternative SVR Models for Censored Datasets* chapter in thesis.

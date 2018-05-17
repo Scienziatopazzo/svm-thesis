@@ -172,7 +172,7 @@ f(x) = \sum_{i=1}^{\ell}(\alpha_{i}-\alpha_{i}^{*})\langle x_{i},x\rangle + b \t
 \end{equation}
 Each point $ x_{i} $ for which $ (\alpha_{i}-\alpha_{i}^{*}) \neq 0 $ is called a \textit{support vector}, and only these points are needed for a sparse representation of $ f $.  Because of this, the complexity of $ f $ only depends on the number of support vectors, and not on the dimensionality of $ \mathcal{X} $.
 
-The last issue is that of computing $b$, which can be done using the Karush-Kuhn-Tucker (KKT) conditions \cite{karush39}\cite{kuhntucker51}. These state that at optimality the product between dual variables and the respective constraints has to vanish:
+The last issue is that of computing $b$, which can be done using the Karush-Kuhn-Tucker (KKT) conditions \cite{karush39,kuhntucker51}. These state that at optimality the product between dual variables and the respective constraints has to vanish:
 \begin{equation} \label{kkt1}
 \begin{split}
 \alpha_{i}(\varepsilon + \xi_{i} - y_{i} + \langle w,x_{i}\rangle + b) = 0 \text{,}\\
@@ -185,7 +185,7 @@ The last issue is that of computing $b$, which can be done using the Karush-Kuhn
 (C - \alpha_{i}^{*})\xi_{i}^{*} = 0 \text{.}
 \end{split}
 \end{equation}
-This leads to the conclusion that only samples with corresponding  $\alpha_{i}^{(*)}=C$ lay outside the $\varepsilon$-insensitive tube, and moreover that there can never be two simultaneously nonzero $\alpha_{i}$ and $\alpha_{i}^{*}$ (therefore $\alpha_{i}\alpha_{i}^{*} = 0$). The following inequalities hold:
+This leads to the conclusion that only samples with corresponding  $\alpha_{i}^{(*)}=C$ lay outside the $\varepsilon$-insensitive tube, and moreover that there can never be two simultaneously nonzero $\alpha_{i}$ and $\alpha_{i}^{*}$ (therefore $\alpha_{i}\alpha_{i}^{*} = 0$). The following inequalities hold for both $\alpha_{i}$ and $\alpha_{i}^{*}$ (for the latter with reversed signs):
 \begin{align}
 \label{compb1}
 \varepsilon - y_{i} + \langle w,x_{i}\rangle + b &\geq 0 \quad \text{and} \quad \xi_{i}=0 &\text{if } \alpha_{i} < C \text{,}\\
@@ -406,8 +406,8 @@ For each data point $(x_{i}, y_{i}, \delta_{i})$, $\delta_{i} = 1$ if the observ
 \begin{split}
 \text{minimize} &\ \dfrac{1}{2}\| w \|^2 + C\sum_{i=1}^{\ell}(\xi_{i} + \xi_{i}^{*}) \\
 \text{subject to} &\ \begin{cases}
-y_{i} - \langle w,x_{i} \rangle - b &\leq \xi_{i} \text{,}\\
-\delta_{i}(\langle w,x_{i} \rangle + b - y_{i}) &\leq \xi_{i}^{*} \text{,}\\
+y_{i} - \langle w,\Phi(x_{i}) \rangle - b &\leq \xi_{i} \text{,}\\
+\delta_{i}(\langle w,\Phi(x_{i}) \rangle + b - y_{i}) &\leq \xi_{i}^{*} \text{,}\\
 \xi_{i}, \xi_{i}^{*} &\geq 0 \text{.}
 \end{cases}
 \end{split}
@@ -416,7 +416,7 @@ The Lagrangian dual formulation is:
 \begin{equation} \label{svcrdual}
 \begin{split}
 \text{maximize} &\quad
--\dfrac{1}{2}\sum_{i,j=1}^{\ell}(\alpha_{i} - \delta_{i}\alpha_{i}^{*})(\alpha_{j} - \delta_{j}\alpha_{j}^{*})\langle x_{i},x_{j} \rangle + \sum_{i=1}^{\ell}y_{i}(\alpha_{i}-\delta_{i}\alpha_{i}^{*}) \\
+-\dfrac{1}{2}\sum_{i,j=1}^{\ell}(\alpha_{i} - \delta_{i}\alpha_{i}^{*})(\alpha_{j} - \delta_{j}\alpha_{j}^{*})k(x_{i},x) + \sum_{i=1}^{\ell}y_{i}(\alpha_{i}-\delta_{i}\alpha_{i}^{*}) \\
 \text{subject to} &\quad \left\{\begin{split}
 &\sum_{i=1}^{\ell}(\alpha_{i} - \delta_{i}\alpha_{i}^{*}) = 0 \text{,}\\
 &\alpha_{i},\alpha_{i}^{*} \in [0,C] \text{,}
@@ -424,9 +424,121 @@ The Lagrangian dual formulation is:
 \end{split}
 \end{equation}
 and the prediction for a new point is found as
-\begin{equation} \label{scvrf}
+\begin{equation} \label{svcrf}
 f(x) = \sum_{i=1}^{\ell}(\alpha_{i}-\delta_{i}\alpha_{i}^{*})k(x_{i},x) + b \text{.}
 \end{equation}
+The issue of computing $b$ is again solved by exploiting the KKT conditions, taking the form
+\begin{equation} \label{svcrkkt1}
+\begin{split}
+\alpha_{i}(\xi_{i} - y_{i} + \langle w,\Phi(x_{i})\rangle + b) = 0 \text{,}\\
+\alpha_{i}^{*}(\xi_{i}^{*} + \delta_{i}(y_{i} - \langle w,\Phi(x_{i})\rangle - b)) = 0 \text{,}
+\end{split}
+\end{equation}
+\begin{equation} \label{svcrkkt2}
+\begin{split}
+(C - \alpha_{i})\xi_{i} = 0 \text{,}\\
+(C - \alpha_{i}^{*})\xi_{i}^{*} = 0 \text{.}
+\end{split}
+\end{equation}
+The only difference from the standard formulation is that, for a censored observation, $b$ cannot be computed even if $\alpha_{i}^{*} \in (0,C)$ as the inequalities
+\begin{align}
+\label{svcrcompb1}
+\delta_{i}(y_{i} - \langle w,\Phi(x_{i})\rangle - b) &\geq 0 \quad \text{and} \quad \xi_{i}=0 &\text{if } \alpha_{i}^{*} < C \text{,}\\
+\label{svcrcompb2}
+y_{i} - \langle w,\Phi(x_{i})\rangle - b &\leq 0 &\text{if } \alpha_{i}^{*} > 0 \text{,}
+\end{align}
+do not become equalities for $\delta_{i} = 0$. They only do if some $\alpha_{i} \in (0,C)$ or $\alpha_{i}^{*} \in (0,C) \wedge \delta_{i} = 0$, then $b$ can be computed as:
+\begin{equation} \label{svcrcompb3}
+b = y_{i} - \langle w,\Phi(x_{i})\rangle \text{.}
+\end{equation}
+
+\section{SVRC}
+Another formulation of support vector regression for censored data is SVRC \cite{khan08}, which employs a more configurable $\varepsilon$-insensitive loss function (see Fig XX.). This model applies different penalties to predictions higher and lower than the target values, while also distinguishing between censored and uncensored observations. Different penalty parameters need to be specified for the resulting four possible cases:
+\begin{itemize}
+\item Penalty $C$ for uncensored observations with predicted value lower than the target value.
+\item Penalty $C^{*}$ for uncensored observations with predicted value higher than the target value, with $C^{*} > C$.
+\item Penalty $C_{c}$ for censored observations with predicted value lower than the target value.
+\item Penalty $C_{c}^{*}$ for censored observations with predicted value higher than the target value, with $C_{c}^{*} < C_{c}$.
+\end{itemize}
+Moreover, the two $\varepsilon$-insensitive tubes for uncensored and censored observations have different widths given by $\varepsilon$ and $\varepsilon_{c}$.
+
+Even though the flexibile nature of SVRC makes it potentially well performing, the high number of hyperparameters needed for such adjustability constitutes its main drawback. The model can be formulated as follows:
+\begin{equation} \label{svrcprimal}
+\begin{split}
+\text{minimize} &\ \dfrac{1}{2}\| w \|^2 + \sum_{i=1}^{\ell}(C_{i}\xi_{i} + C_{i}^{*}\xi_{i}^{*}) \\
+\text{subject to} &\ \begin{cases}
+y_{i} - \langle w,\Phi(x_{i}) \rangle - b &\leq \varepsilon_{i} + \xi_{i} \text{,}\\
+\langle w,\Phi(x_{i}) \rangle + b - y_{i} &\leq \varepsilon_{i} + \xi_{i}^{*} \text{,}\\
+\xi_{i}, \xi_{i}^{*} &\geq 0 \text{,}
+\end{cases}\\
+\text{with} &\
+\begin{cases}
+C_{i}^{(*)} &= \delta_{i}C^{(*)} + (1-\delta_{i})C_{c}^{(*)} \text{,}\\
+\varepsilon_{i} &= \delta_{i}\varepsilon + (1-\delta_{i})\varepsilon_{c} \text{.}
+\end{cases}
+\end{split}
+\end{equation}
+The Lagrangian dual formulation is:
+\begin{equation} \label{svrcdual}
+\begin{split}
+\text{maximize} &\quad
+-\dfrac{1}{2}\sum_{i,j=1}^{\ell}(\alpha_{i} - \alpha_{i}^{*})(\alpha_{j} - \alpha_{j}^{*})k(x_{i},x) -\sum_{i=1}^{\ell}\varepsilon_{i}(\alpha_{i} + \alpha_{i}^{*}) + \sum_{i=1}^{\ell}y_{i}(\alpha_{i}-\alpha_{i}^{*}) \\
+\text{subject to} &\quad \left\{\begin{split}
+&\sum_{i=1}^{\ell}(\alpha_{i} - \alpha_{i}^{*}) = 0 \text{,}\\
+&\alpha_{i} \in [0,C_{i}] \text{,} \\
+&\alpha_{i}^{*} \in [0,C_{i}^{*}] \text{,}
+\end{split}\right.
+\end{split}
+\end{equation}
+and the prediction for a new point is found as
+\begin{equation} \label{svrcf}
+f(x) = \sum_{i=1}^{\ell}(\alpha_{i}-\alpha_{i}^{*})k(x_{i},x) + b \text{.}
+\end{equation}
+Computing $b$ is done in a way analogous to the standard case. If some $\alpha_{i}^{(*)} \in (0,C)$, then
+\begin{equation} \label{svrccompb3}
+b = - \varepsilon_{i} + y_{i} - \langle w,\Phi(x_{i})\rangle \text{.}
+\end{equation}
+
+\section{RankSVMC}
+A different approach to support vector learning for survival analysis is that of reformulating the survival prediction problem as a ranking problem. In a ranking problem the precise predictions of a model for single observations are no longer important, the goal is instead that of sorting observations correctly. In a survival analysis setting this is translated into interest in defining risk groups, rather than predicting survival time.
+
+The RankSVMC model proposed in \cite{vanbelle07,evers08} consists in penalizing each comparable pair of data points for which the order of predicted indexes differs from the actual observed order. Two points are ``comparable'' when the order of their event times is known, more formally:
+\begin{equation} \label{comparable}
+\text{comp}(i,j) = \begin{cases}
+1 \; &\text{if } \delta_{i} = 1 \text{ and } \delta_{j} = 1 \text{, or}\\
+&\delta_{i} = 1 \text{ and } \delta_{j} = 0 \text{ and } y_{i} \leq y_{j} \text{, or}\\
+&\delta_{i} = 0 \text{ and } \delta_{j} = 1 \text{ and } y_{i} \geq y_{j} \text{,}\\
+0 \; &\text{otherwise.}
+\end{cases}
+\end{equation}
+The model is formulated as follows:
+\begin{equation} \label{ranksvmcprimal}
+\begin{split}
+\text{minimize} &\ \dfrac{1}{2}\| w \|^2 + C\sum_{i=1}^{\ell}\sum_{\footnotesize\begin{split} j:y_{i} > y_{j} \\ \text{comp}(i,j) = 1 \end{split}}\xi_{ij} \\
+\text{subject to} &\ \begin{cases}
+\langle w,(\Phi(x_{i}) - \Phi(x_{j})) \rangle \geq 1 - \xi_{ij} \text{,} &\forall i \forall j : y_{i} > y_{j} \text{ and comp}(i,j) = 1\\
+\xi_{ij} \geq 0 \text{,} &\forall i \forall j : y_{i} > y_{j} \text{ and comp}(i,j) = 1 \text{.}
+\end{cases}
+\end{split}
+\end{equation}
+The Lagrangian dual formulation is:
+\begin{equation} \label{ranksvmcdual}
+\begin{split}
+\text{maximize} &\
+-\dfrac{1}{2}\sum_{i=1}^{\ell}\sum_{\scriptsize\begin{split} j:y_{i} > y_{j} \\ \text{comp}(i,j) = 1 \end{split}}\sum_{k=1}^{\ell}\sum_{\scriptsize\begin{split} m:y_{k} > y_{m} \\ \text{comp}(k,m) = 1 \end{split}}\alpha_{ij}\alpha_{km}\langle (\Phi(x_{i}) - \Phi(x_{j})),(\Phi(x_{k}) - \Phi(x_{m}))\rangle \\ &\ + \sum_{i=1}^{\ell}\sum_{\scriptsize\begin{split} j:y_{i} > y_{j} \\ \text{comp}(i,j) = 1 \end{split}}\alpha_{ij} \\
+\text{subject to} &\quad \alpha_{ij} \in [0,C] \text{,}
+\end{split}
+\end{equation}
+and can be kernelized with the step
+\begin{equation} \label{ranksvmckern}
+\langle (\Phi(x_{i}) - \Phi(x_{j})),(\Phi(x_{k}) - \Phi(x_{m}))\rangle = k(x_{i},x_{k})-k(x_{j},x_{k})-k(x_{i},x_{m})+k(x_{j},x_{m}) \text{.}
+\end{equation}
+The prediction for a new point is found as
+\begin{equation} \label{ranksvmcf}
+f(x) = \sum_{i=1}^{\ell}\sum_{\footnotesize\begin{split} j:y_{i} > y_{j} \\ \text{comp}(i,j) = 1 \end{split}}\alpha_{ij}(k(x_{i},x) - k(x_{j},x)) \text{.}
+\end{equation}
+
+A major drawback of this model is that the number of constraints (or the number of multipliers in the Lagrangian dual) is $\mathcal{O}(n^{2})$, making the quadratic programming problem too computationally expensive. For this reason, a simplified model characterized by only $\mathcal{O}(n)$ constraints has been proposed in \cite{vanbelle08}.
 
 \chapter{A Custom SVR Implementation}
 \label{chcustsvr}
