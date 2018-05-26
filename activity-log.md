@@ -1,5 +1,8 @@
 # SVMRegression - Research Activity Log
 
+## 26th May 2018
+* Almost finished *Alternative SVR Models for Censored Datasets* chapter draft.
+
 ## 17th May 2018
 * Added subsections for *SVRC* and *RankSVMC*.
 

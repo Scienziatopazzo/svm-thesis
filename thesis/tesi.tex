@@ -353,7 +353,7 @@ The new feature \textit{Therapy to visit} can thus be introduced, computed as $ 
 \subsection*{Removing subsets of highly correlated features}
 As noticed in the original exploratory analysis, some features in the dataset are highly correlated with each other. Removing features having high correlation with other ones has the effect of reducing the dimensionality of the feature space, thus simplifying learning, without losing too much useful information.
 
-Groups of highly correlated features had been identified in Section \ref{explanal}, as Fig. XX shows. Any combination of features in these groups would be suitable for removal. Two ways of doing this are to either remove \textit{IP Gravity}, \textit{FS \%}, \textit{ESVI}, \textit{Allo diast} and \textit{Allo sist}; or to remove \textit{IP Gravity}, \textit{FE \%}, \textit{EDVI}, \textit{ESVI} and \textit{Allo sist}. The resulting correlation heatmaps are shown in Fig. YY.
+Groups of highly correlated features have been identified in Section \ref{explanal}, as Fig. XX shows. Any combination of features in these groups would be suitable for removal. Two ways of doing this are to either remove \textit{IP Gravity}, \textit{FS \%}, \textit{ESVI}, \textit{Allo diast} and \textit{Allo sist}; or to remove \textit{IP Gravity}, \textit{FE \%}, \textit{EDVI}, \textit{ESVI} and \textit{Allo sist}. The resulting correlation heatmaps are shown in Fig. YY.
 
 \section{Cross-validation and repeated holdout}
 In order to estimate the out-of-sample performance of a model, the most commonly taken approach is to split the original dataset into a training set and a test set. Only the training set is used during learning, while the test set is set aside and not tampered with until the end, so it can be used to obtain a score of the learned model by comparing the test targets with the model's predictions obtained from test data.
@@ -399,7 +399,7 @@ A few workarounds were proposed in Section \ref{handlcens} to work with the stan
 A few modifications to the support vector machine model have been proposed specifically to work on unaltered censored datasets. What follows is an overview of a number of such models, also available in \cite{vanbelle11}.
 
 \section{SVCR}
-A simple alternative formulation of support vector regression, called SVCR \cite{shivaswamy07}, consists in relaxing the right-sided constraint in (\ref{smargprimal}) on censored data points. As shown in Fig. XX, this corresponds to changing the loss function so that, in the case of a censored observation, predictions landing on the right side of the center are not penalized. Furthermore, the model as given by \cite{vanbelle11} does not require an $\varepsilon$ parameter, setting the width of the $\varepsilon$-insensitive tube to zero.
+A simple alternative formulation of support vector regression, called SVCR \cite{shivaswamy07}, consists in relaxing the right-sided constraint in Eq. (\ref{smargprimal}) on censored data points. As shown in Fig. XX, this corresponds to changing the loss function so that, in the case of a censored observation, predictions landing on the right side of the center are not penalized. Furthermore, the model as given by \cite{vanbelle11} does not require an $\varepsilon$ parameter, setting the width of the $\varepsilon$-insensitive tube to zero.
 
 For each data point $(x_{i}, y_{i}, \delta_{i})$, $\delta_{i} = 1$ if the observation is uncensored, while $\delta_{i} = 0$ if it is censored. The SVCR model can therefore be formulated as:
 \begin{equation} \label{svcrprimal}
@@ -538,7 +538,72 @@ The prediction for a new point is found as
 f(x) = \sum_{i=1}^{\ell}\sum_{\footnotesize\begin{split} j:y_{i} > y_{j} \\ \text{comp}(i,j) = 1 \end{split}}\alpha_{ij}(k(x_{i},x) - k(x_{j},x)) \text{.}
 \end{equation}
 
-A major drawback of this model is that the number of constraints (or the number of multipliers in the Lagrangian dual) is $\mathcal{O}(n^{2})$, making the quadratic programming problem too computationally expensive. For this reason, a simplified model characterized by only $\mathcal{O}(n)$ constraints has been proposed in \cite{vanbelle08}.
+A major drawback of this model is that the number of constraints (or the number of multipliers in the Lagrangian dual) is $\mathcal{O}(\ell^{2})$, making the quadratic programming problem too computationally expensive. For this reason, a simplified model characterized by only $\mathcal{O}(\ell)$ constraints has been proposed in \cite{vanbelle08}. The reduction consists in comparing each data point $i$ with only one $\overline{j}(i)$, the comparable point with the largest survival time smaller than $y_{i}$, instead of doing it with all comparable data points.
+
+\section{Van Belle Model 1}
+A survival model similar to the previously mentioned RankSVMC simplification was presented in \textit{Van Belle et al.} \cite{vanbelle11b}, referred to by the authors as ``Model 1'' \cite{vanbelle11}. The difference between the two lies in the right hand side of the first set of constraints in Eq. (\ref{ranksvmcprimal}), where in the new fomulation $1$ is replaced by $y_{i} - y_{\overline{j}(i)}$.
+
+Van Belle's Model 1 can therefore be formulated as:
+\begin{equation} \label{model1primal}
+\begin{split}
+\text{minimize} &\ \dfrac{1}{2}\| w \|^2 + C\sum_{i=1}^{\ell}\xi_{i} \\
+\text{subject to} &\ \begin{cases}
+\langle w,(\Phi(x_{i}) - \Phi(x_{\overline{j}(i)})) \rangle \geq y_{i} - y_{\overline{j}(i)} - \xi_{i} \text{,}\\
+\xi_{i} \geq 0 \text{.}
+\end{cases}
+\end{split}
+\end{equation}
+The Lagrangian dual formulation is:
+\begin{equation} \label{model1dual}
+\begin{split}
+\text{maximize} &\
+-\dfrac{1}{2}\sum_{i=1}^{\ell}\sum_{k=1}^{\ell}\alpha_{i}\alpha_{k}(k(x_{i},x_{k})-k(x_{\overline{j}(i)},x_{k})-k(x_{i},x_{\overline{j}(k)})+k(x_{\overline{j}(i)},x_{\overline{j}(k)})) \\
+&\ + \sum_{i=1}^{\ell}\alpha_{i}(y_{i} - y_{\overline{j}(i)}) \\
+\text{subject to} &\quad \alpha_{i} \in [0,C] \text{,}
+\end{split}
+\end{equation}
+and the prediction for a new point can be found as
+\begin{equation} \label{model1f}
+f(x) = \sum_{i=1}^{\ell}\alpha_{i}(k(x_{i},x) - k(x_{\overline{j}(i)},x)) \text{.}
+\end{equation}
+
+\section{Van Belle Model 2}
+When using models meant to solve ranking problems, the obtained prognostic indices for new points cannot be interpreted as survival times, but only as rankings. \textit{Van Belle et al.} proposed a ranking model for which the output indices can be interpreted as times, called ``Model 2'' \cite{vanbelle11}. This can be obtained by simultaneously employing constraints from both the regression model SVCR and ranking-based Model 1.
+
+Van Belle's Model 2 can be formulated as follows:
+\begin{equation} \label{model2primal}
+\begin{split}
+\text{minimize} &\ \dfrac{1}{2}\| w \|^2 + C_{r}\sum_{i=1}^{\ell}\epsilon_{i} + C_{p}\sum_{i=1}^{\ell}(\xi_{i} + \xi_{i}^{*}) \\
+\text{subject to} &\ \begin{cases}
+\langle w,(\Phi(x_{i}) - \Phi(x_{\overline{j}(i)})) \rangle &\geq y_{i} - y_{\overline{j}(i)} - \epsilon_{i} \text{,}\\
+y_{i} - \langle w,\Phi(x_{i}) \rangle - b &\leq \xi_{i} \text{,}\\
+\delta_{i}(\langle w,\Phi(x_{i}) \rangle + b - y_{i}) &\leq \xi_{i}^{*} \text{,}\\
+\epsilon_{i} &\geq 0 \text{,}\\
+\xi_{i}, \xi_{i}^{*} &\geq 0 \text{,}
+\end{cases}
+\end{split}
+\end{equation}
+with $C_{r}$ being the penalty for misraking observations, and $C_{p}$ the penalty for predictions.
+The Lagrangian dual formulation is:
+\begin{equation} \label{model2dual}
+\begin{split}
+\text{maximize} &\
+-\dfrac{1}{2}\sum_{i=1}^{\ell}\sum_{k=1}^{\ell}\alpha_{i}\alpha_{k}(k(x_{i},x_{k})-k(x_{\overline{j}(i)},x_{k})-k(x_{i},x_{\overline{j}(k)})+k(x_{\overline{j}(i)},x_{\overline{j}(k)})) \\
+&\ - \sum_{i=1}^{\ell}\sum_{k=1}^{\ell}(\beta_{i} - \delta_{i}\beta_{i}^{*})\alpha_{k}(k(x_{i},x_{k}) - k(x_{i},x_{\overline{j}(k)})) + \sum_{i=1}^{\ell}\alpha_{i}(y_{i} - y_{\overline{j}(i)}) \\
+&\ - \sum_{i=1}^{\ell}\sum_{k=1}^{\ell}(\beta_{i} - \delta_{i}\beta_{i}^{*})(\beta_{k} - \delta_{k}\beta_{k}^{*})k(x_{i},x_{k}) + \sum_{i=1}^{\ell}(\beta_{i} - \delta_{i}\beta_{i}^{*})y_{i}\\
+\text{subject to} &\ \begin{cases}
+\sum_{i=1}^{\ell}(\beta_{i} - \delta_{i}\beta_{i}^{*}) = 0 \text{,}\\
+\alpha_{i} \in [0,C_{r}] \text{,}\\
+\beta_{i}^{(*)} \in [0,C_{p}] \text{,}
+\end{cases}
+\end{split}
+\end{equation}
+and the prediction for a new point can be found as
+\begin{equation} \label{model2f}
+f(x) = \sum_{i=1}^{\ell}\alpha_{i}(k(x_{i},x) - k(x_{\overline{j}(i)},x))+(\beta_{i}-\delta_{i}\beta_{i}^{*})k(x_{i},x)+b \text{.}
+\end{equation}
+
+% compute b
 
 \chapter{A Custom SVR Implementation}
 \label{chcustsvr}
