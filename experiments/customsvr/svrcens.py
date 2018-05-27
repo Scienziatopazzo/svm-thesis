@@ -589,7 +589,7 @@ class Model2(AbstractCensSVR):
         fobj_a_kern = -(1/2) * gpy.quicksum(a[i]*a[j]*(self.k(X[ind[i][0]],X[ind[j][0]]) - self.k(X[ind[i][1]],X[ind[j][0]]) - self.k(X[ind[i][0]],X[ind[j][1]]) + self.k(X[ind[i][1]],X[ind[j][1]])) for i in range(len(ind)) for j in range(len(ind)))
         fobj_a = gpy.quicksum(a[i]*(y[ind[i][0]] - y[ind[i][1]]) for i in range(len(ind)))
         fobj_ab_kern = - gpy.quicksum((b[i,0] - self.deltas[i]*b[i,1])*a[j]*(self.k(X[ind[i][0]],X[ind[j][0]]) - self.k(X[ind[i][0]],X[ind[j][1]])) for i in range(len(ind)) for j in range(len(ind)))
-        fobj_b_kern = - gpy.quicksum((b[i,0] - self.deltas[i]*b[i,1])*(b[j,0] - self.deltas[j]*b[j,1])*self.k(X[ind[i][0]],X[ind[j][0]]) for i in range(len(ind)) for j in range(len(ind)))
+        fobj_b_kern = -(1/2) * gpy.quicksum((b[i,0] - self.deltas[i]*b[i,1])*(b[j,0] - self.deltas[j]*b[j,1])*self.k(X[ind[i][0]],X[ind[j][0]]) for i in range(len(ind)) for j in range(len(ind)))
         fobj_b = gpy.quicksum((b[i,0] - self.deltas[i]*b[i,1])*y[ind[i][0]] for i in range(len(ind)))
         self.model.setObjective(fobj_a_kern + fobj_a + fobj_ab_kern + fobj_b_kern + fobj_b , gpy.GRB.MAXIMIZE)
 

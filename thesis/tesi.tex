@@ -222,15 +222,15 @@ with the difference from the linear case being that $ w $ is no longer computed 
 
 An example of an ammissible kernel is the polynomial kernel
 \begin{equation} \label{polykernel}
-k(x_{i},x_{j}) = (\langle x_{i},x_{j} \rangle + \gamma)^{d} \text{,}
+k(x_{i},x_{j}) = (\gamma\langle x_{i},x_{j} \rangle + c)^{d} \text{,}
 \end{equation}
-with $ d \in \mathbb{N} $ and $ \gamma \geq 0 $, which corresponds to feature spaces $ \mathcal{F} $ yielding different kinds of polynomial functions $ f $ having degree at most equal to $d$.
+with $ d \in \mathbb{N} $, $ \gamma > 0 $ and $ c \geq 0 $, which corresponds to feature spaces $ \mathcal{F} $ yielding different kinds of polynomial functions $ f $ having degree at most equal to $d$.
 
 Another example is the gaussian kernel
 \begin{equation} \label{gausskernel}
 k(x_{i},x_{j}) = e^{-\dfrac{\| x_{i}-x_{j} \|^{2}}{2\gamma^{2}}} \text{,}
 \end{equation}
-with $ \gamma \geq 0 $, which corresponds to the feature spaces $ \mathcal{F} $ of radial basis functions. In this case, $ \mathcal{F} $ is actually infinite-dimensional, so directly computing $ \Phi $ would have been impossible.
+with $ \gamma > 0 $, which corresponds to the feature spaces $ \mathcal{F} $ of radial basis functions. In this case, $ \mathcal{F} $ is actually infinite-dimensional, so directly computing $ \Phi $ would have been impossible.
 
 \chapter{Dataset Preprocessing and Exploration}
 \label{chprepr}
@@ -340,7 +340,7 @@ The scaler is ``fitted'' on training data, and can then be used to transform bot
 \subsection*{Outlier detection}
 The presence of outliers may negatively affect the learning of patterns and meaningful relationships between features. Thus, it may be useful to apply some sort of outlier filtering before training.
 
-There are many different ways of detecting outliers in multidimensional data. An example of unsupervised outlier detection is the use of Local Outlier Factor (LOF) \cite{breunig00}, implemented in scikit-learn with the class \textit{LocalOutlierFactor}. LOF computes anomaly scores measuring the local deviation of density of a given sample with respect to its neighbors.
+There are many different ways of detecting outliers in multidimensional data. An example of unsupervised outlier detection is the use of Local Outlier Factor (LOF) \cite{breunig00}, implemented in scikit-learn with the class \texttt{LocalOutlierFactor}. LOF computes anomaly scores measuring the local deviation of density of a given sample with respect to its neighbors.
 
 \section{Feature engineering}
 \textit{Feature engineering} consists in selecting, creating and combining features before feeding them into a machine learning model.
@@ -355,15 +355,15 @@ As noticed in the original exploratory analysis, some features in the dataset ar
 
 Groups of highly correlated features have been identified in Section \ref{explanal}, as Fig. XX shows. Any combination of features in these groups would be suitable for removal. Two ways of doing this are to either remove \textit{IP Gravity}, \textit{FS \%}, \textit{ESVI}, \textit{Allo diast} and \textit{Allo sist}; or to remove \textit{IP Gravity}, \textit{FE \%}, \textit{EDVI}, \textit{ESVI} and \textit{Allo sist}. The resulting correlation heatmaps are shown in Fig. YY.
 
-\section{Cross-validation and repeated holdout}
-In order to estimate the out-of-sample performance of a model, the most commonly taken approach is to split the original dataset into a training set and a test set. Only the training set is used during learning, while the test set is set aside and not tampered with until the end, so it can be used to obtain a score of the learned model by comparing the test targets with the model's predictions obtained from test data.
+\section{Cross-validation and repeated holdout} \label{cvalreph}
+In order to estimate the out-of-sample performance of a model, the most commonly taken approach is to split the original dataset into a training set and a test set. Only the training set is used during learning, while the test set is set aside and not tampered with until the end, so it can be used to obtain a score of the learned model by comparing the test targets with the model's predictions obtained from test data. As a default, the metric here adopted for prediction scoring is $R^2$, defined as $1 - u/v$, where $u = \sum(y_{\text{true}} - y_{\text{pred}})^2$ and $v = \sum(y_{\text{true}} - \mu_{y_{\text{true}}})^2$.
 
-However, most machine learning algorithms such as support vector machines depend on a number of hyperparameters that need to be chosen often arbitrarily, before a model can be obtained. This problem of \textit{model selection} can be solved by further splitting the training set into training and validation sets, and performing a grid search of all possible hyperparameter combinations. A model learned from the training set using a combination of hyperparameters can be scored using the validation set, without touching the original test set.
+However, most machine learning algorithms such as support vector machines depend on a number of hyperparameters that need to be chosen often arbitrarily, before a model can be obtained. This problem of \textit{model selection} can be solved by further splitting the training set into training and validation sets, and performing a grid search of all possible hyperparameter combinations. A model learned from the training set using a combination of hyperparameters can be scored using the validation set, without compromising the original test set.
 
 \subsection*{K-fold cross-validation}
 A sophisticated method of model selection is cross-validation. The training/validation set is partitioned into $ K $ subsets of approximately the same size, and for each hyperparamter combination, the model is trained $ K $ times, using each time a different subset as validation set, and merging the $ K - 1 $ remaining ones as a training set. The $ K $ scores obtained are then averaged, and this average is counted as the score for the current hyperaparameter combination in the grid search.
 
-An implementation of cross-validation grid search can be found in scikit-learn with the class \textit{CVGridSearch}.
+An implementation of cross-validation grid search can be found in scikit-learn with the class \texttt{CVGridSearch}.
 
 \subsection*{Holdout}
 Much simpler than cross-validation, holdout validation consists in splitting once training and validation sets, and then performing a grid search on the hyperparameter space by training and scoring every combination only once. It is computationally easier than cross-validation, but can be less precise in its score.
@@ -372,7 +372,7 @@ A custom, parallelized implementation has been made for the purpose of this work
 
 In this work's training pipeline, holdout is repeated a certain number of times using different training/validation splits, and the parameters giving rise to the best result for all runs are kept as the final model. For this reason, it is referred to as ``repeated holdout''.
 
-\section{The learning pipeline}
+\section{The learning pipeline} \label{learnpipeline}
 The process of training and evaluating a model is broken up into several steps leading to the eventual application of the support vector machine algorithm. The pipeline is structured as follows.
 \begin{enumerate}
 \item The python function \texttt{load\_df\_dogs\_2016} reads the dataset from the .xlsx file and returns a \textit{pandas dataframe}. All the preprocessing corrections and alterations are selectively performed in accordance to the calling parameters. These include the dropping of useless columns, the correction of survival time and age values, and the application of \textit{NA} and \textit{censoring policies}. At this stage it's possible to apply \textit{feature engineering} by selecting only a subset of useful columns or introducing certain new ones.
@@ -381,9 +381,9 @@ The process of training and evaluating a model is broken up into several steps l
 \begin{enumerate}
 \item Both \textit{X} and \textit{y} are split into training/validation and test sets using the \texttt{train\_test\_split} function from scikit-learn.
 \item The training/validation set previously obtained is further split, in accordance with holdout validation, into training and validation sets with \texttt{train\_test\_split}.
-\item If an outlier detection class has been given, it is used to detect and remove outliers from the training set. An example of one such class is \textit{LocalOutlierFactor} from scikit-learn.
-\item If a scaler class has been given, the scaler is fitted on the training set, and then used to scale both training and validation sets. The scaler most commonly used is \textit{StandardScaler} from scikit-learn.
-\item A grid search is performed on the given \textit{parameter grid}, with the goal of finding the combination of hyperparameters leading to the best performing model. For each generated combination, the support vector regression algorithm implemented in the \textit{estimator} class is run on the training set, and then scored using its predictions for the validation set targets. If a combination beats the best score it is memorized. The grid search is parallelized, using the \textit{multiprocessing} python module.
+\item If an outlier detection class has been given, it is used to detect and remove outliers from the training set. An example of one such class is \texttt{LocalOutlierFactor} from scikit-learn.
+\item If a scaler class has been given, the scaler is fitted on the training set, and then used to scale both training and validation sets. The scaler most commonly used is \texttt{StandardScaler} from scikit-learn.
+\item A grid search is performed on the given \textit{parameter grid}, with the goal of finding the combination of hyperparameters leading to the best performing model. For each generated combination, the support vector regression algorithm implemented in the \textit{estimator} class is run on the training set, and then scored using its predictions for the validation set targets. If a combination beats the best score it is memorized. The grid search is parallelized, using the \texttt{multiprocessing} python module.
 \item If more \textit{runs} have yet to be performed, repeat from step 3.2.
 \item After finding the best hyperparameters, training and validation sets are joined again. Outlier detection is performed on the original training/validation set, then the Scaler is fitted on the training/validation set and applied to both the training/validation set and the test set. The support vector regression \textit{estimator} is trained on the whole training/validation set using the obtained hyperparameters, and then scored on the test set. The hyperparameters and the score are then returned.
 \end{enumerate}
@@ -447,7 +447,7 @@ The only difference from the standard formulation is that, for a censored observ
 \label{svcrcompb2}
 y_{i} - \langle w,\Phi(x_{i})\rangle - b &\leq 0 &\text{if } \alpha_{i}^{*} > 0 \text{,}
 \end{align}
-do not become equalities for $\delta_{i} = 0$. They only do if some $\alpha_{i} \in (0,C)$ or $\alpha_{i}^{*} \in (0,C) \wedge \delta_{i} = 0$, then $b$ can be computed as:
+do not become equalities for $\delta_{i} = 0$. They only do if some $\alpha_{i} \in (0,C)$ or $\alpha_{i}^{*} \in (0,C) \wedge \delta_{i} = 1$, then $b$ can be computed as:
 \begin{equation} \label{svcrcompb3}
 b = y_{i} - \langle w,\Phi(x_{i})\rangle \text{.}
 \end{equation}
@@ -511,7 +511,11 @@ The RankSVMC model proposed in \cite{vanbelle07,evers08} consists in penalizing 
 0 \; &\text{otherwise.}
 \end{cases}
 \end{equation}
-The model is formulated as follows:
+Moreover, since the value of prognostic indices loses meaning, distance-based scoring metrics such as $R^2$ are no longer useful. A measure concerned exclusively with the ordering of target values is the \textit{concordance index}, defined as the ratio of the number of concordant pairs and the number of comparable pairs. With $\mathcal{I}$ being the indicator function, the index can be written as
+\begin{equation} \label{c-index}
+\text{c-index}(f) = \dfrac{\sum_{i=1}^{\ell}\sum_{j \neq i}\mathcal{I}[(f(x_{i})-f(x_{j}))(y_{i}-y_{j}) \geq 0]}{\sum_{i=1}^{\ell}\sum_{j\neq i}\text{comp}(i,j)} \text{.}
+\end{equation}
+The RankSVMC model is formulated as follows:
 \begin{equation} \label{ranksvmcprimal}
 \begin{split}
 \text{minimize} &\ \dfrac{1}{2}\| w \|^2 + C\sum_{i=1}^{\ell}\sum_{\footnotesize\begin{split} j:y_{i} > y_{j} \\ \text{comp}(i,j) = 1 \end{split}}\xi_{ij} \\
@@ -537,6 +541,7 @@ The prediction for a new point is found as
 \begin{equation} \label{ranksvmcf}
 f(x) = \sum_{i=1}^{\ell}\sum_{\footnotesize\begin{split} j:y_{i} > y_{j} \\ \text{comp}(i,j) = 1 \end{split}}\alpha_{ij}(k(x_{i},x) - k(x_{j},x)) \text{.}
 \end{equation}
+Note that since the output values are only meaningful when compared with one another, the addition of a constant term $b$ is not useful.
 
 A major drawback of this model is that the number of constraints (or the number of multipliers in the Lagrangian dual) is $\mathcal{O}(\ell^{2})$, making the quadratic programming problem too computationally expensive. For this reason, a simplified model characterized by only $\mathcal{O}(\ell)$ constraints has been proposed in \cite{vanbelle08}. The reduction consists in comparing each data point $i$ with only one $\overline{j}(i)$, the comparable point with the largest survival time smaller than $y_{i}$, instead of doing it with all comparable data points.
 
@@ -583,14 +588,14 @@ y_{i} - \langle w,\Phi(x_{i}) \rangle - b &\leq \xi_{i} \text{,}\\
 \end{cases}
 \end{split}
 \end{equation}
-with $C_{r}$ being the penalty for misraking observations, and $C_{p}$ the penalty for predictions.
+with $C_{r}$ being the penalty for misraking observations, and $C_{p}$ the penalty for predictions. Note that the model reduces to Model 1 for $C_{p}=0$ and to SVCR for $C_{r}=0$.
 The Lagrangian dual formulation is:
 \begin{equation} \label{model2dual}
 \begin{split}
 \text{maximize} &\
 -\dfrac{1}{2}\sum_{i=1}^{\ell}\sum_{k=1}^{\ell}\alpha_{i}\alpha_{k}(k(x_{i},x_{k})-k(x_{\overline{j}(i)},x_{k})-k(x_{i},x_{\overline{j}(k)})+k(x_{\overline{j}(i)},x_{\overline{j}(k)})) \\
 &\ - \sum_{i=1}^{\ell}\sum_{k=1}^{\ell}(\beta_{i} - \delta_{i}\beta_{i}^{*})\alpha_{k}(k(x_{i},x_{k}) - k(x_{i},x_{\overline{j}(k)})) + \sum_{i=1}^{\ell}\alpha_{i}(y_{i} - y_{\overline{j}(i)}) \\
-&\ - \sum_{i=1}^{\ell}\sum_{k=1}^{\ell}(\beta_{i} - \delta_{i}\beta_{i}^{*})(\beta_{k} - \delta_{k}\beta_{k}^{*})k(x_{i},x_{k}) + \sum_{i=1}^{\ell}(\beta_{i} - \delta_{i}\beta_{i}^{*})y_{i}\\
+&\ - \dfrac{1}{2}\sum_{i=1}^{\ell}\sum_{k=1}^{\ell}(\beta_{i} - \delta_{i}\beta_{i}^{*})(\beta_{k} - \delta_{k}\beta_{k}^{*})k(x_{i},x_{k}) + \sum_{i=1}^{\ell}(\beta_{i} - \delta_{i}\beta_{i}^{*})y_{i}\\
 \text{subject to} &\ \begin{cases}
 \sum_{i=1}^{\ell}(\beta_{i} - \delta_{i}\beta_{i}^{*}) = 0 \text{,}\\
 \alpha_{i} \in [0,C_{r}] \text{,}\\
@@ -602,11 +607,44 @@ and the prediction for a new point can be found as
 \begin{equation} \label{model2f}
 f(x) = \sum_{i=1}^{\ell}\alpha_{i}(k(x_{i},x) - k(x_{\overline{j}(i)},x))+(\beta_{i}-\delta_{i}\beta_{i}^{*})k(x_{i},x)+b \text{.}
 \end{equation}
-
-% compute b
+As the obtained prognostic index assumes a meaningful survival time value, the issue of computing $b$ becomes relevant again. In order to do that, the method used for SVCR is applied to the dual variables corresponding to the regression constraints. Therefore, if some $\beta_{i} \in (0,C_{p})$ or $\beta_{i}^{*} \in (0,C_{p}) \wedge \delta_{i} = 1$, then
+\begin{equation} \label{model2b3}
+b = y_{i} - \langle w,\Phi(x_{i})\rangle \text{.}
+\end{equation}
 
 \chapter{A Custom SVR Implementation}
 \label{chcustsvr}
+Initially, the analyses performed for this thesis made use of the scikit-learn \cite{sklearn} implementation of the standard Support Vector Regression model. The estimator class \texttt{SVR}, taken from the scikit-learn module \texttt{svm}, was used in the pipeline presented in Section \ref{learnpipeline}. However, it soon became apparent that alternative models not present in the library had to be used, and so a custom SVR implementation was needed. To this end, the \textbf{Gurobi} optimizer \cite{gurobi} was chosen as a quadratic programming solver.
+
+\section{The \texttt{customsvr} module}
+The custom estimator classes implemented for this thesis are collected in the \texttt{customsvr} module. They can substitute the scikit-learn estimators in the learning pipeline without compatibilty problems.
+
+An abstract class \texttt{AbstractSVR}, created using the \texttt{abc} (Abstract Base Classes) python module, defines the attributes and methods shared by all SVR models in the library. Its constructor \texttt{\_\_init\_\_} requires the parameters:
+\begin{itemize}
+\item \texttt{string kernel}. Specifies the kernel type between ``linear'', ``poly'' (polynomial) and ``rbf'' (radial basis function). The default being ``rbf'';
+\item \texttt{float gamma}. The $\gamma$ coefficient for ``rbf'' and ``poly'' kernels. If set at ``auto'', then $\gamma=1/\text{n\_features}$. The default is ``auto'';
+\item \texttt{int degree}. The degree of the polynomial kernel ``poly'', ignored by other kernels. The default is 3;
+\item \texttt{float coef0}. The independent term in the polynomial kernel ``poly'', ignored by other kernels. The default is 0.0;
+\item \texttt{bool verbose}. Enables verbose Gurobi output. False by default.
+\end{itemize}
+Its other defined methods are:
+\begin{itemize}
+\item \texttt{reset(self)}. It resets all internal attributes relative to training to their initial values, including the Gurobi optimizer instance;
+\item \texttt{k(self, a, b)}, with \texttt{a} and \texttt{b} being two numpy arrays. It computes the kernel product of two data points, based on the kernel function chosen at initialization;
+\item \texttt{fit(self, X, y)}, with \texttt{X} being a numpy matrix, and \texttt{y} a numpy array. It solves the quadratic programming problem on the dataset \texttt{X} with targets \texttt{y}, memorizing support vectors and relative coefficients necessary to evaluate $f$ on future points;
+\item \texttt{hypothesis\_f(self, x)}, with \texttt{x} being a numpy array. It evaluates the obtained $f(x)$ on a new point;
+\item \texttt{predict(self, X)}, with \texttt{X} being a numpy matrix. It evaluates $f(x)$ on all samples $x \in X$;
+\item \texttt{score(self, X, y, metric)}, with \texttt{X} being a numpy matrix, \texttt{y} a numpy array, and \texttt{metric} the chosen score metric, by default ``R2''. It scores the current model on new data \texttt{X} with known target values \texttt{y}, adopting a certain scoring metric;
+\item \texttt{scoreR2(self, X, y)}, with \texttt{X} being a numpy matrix and \texttt{y} a numpy array. Called by \texttt{score} when \texttt{metric="R2"}, it returns the coefficient of determination $R^2$ (as defined in Section \ref{cvalreph}) for the predictions of the model on \texttt{X}.
+\end{itemize}
+\texttt{AbstractSVR} is extended by another abstract class, \texttt{AbstractCensSVR}, which adds features necessary for models specialized in censored data. This includes the methods:
+\begin{itemize}
+\item \texttt{comp(self, d, y, i, j)}, with \texttt{d} and \texttt{y} being numpy arrays, and \texttt{i} and \texttt{j} being integers. It checks, based on censor deltas \texttt{d} and target values \texttt{y}, if points at indices \texttt{i} and \texttt{j} are comparable, using the function detailed in Eq. (\ref{comparable});
+\item \texttt{scoreCindex(self, X, y)}, with \texttt{X} being a numpy matrix and \texttt{y} a numpy array. Called by \texttt{score} when \texttt{metric="c-index"}, it returns the concordance index (as defined in Eq. (\ref{c-index})) for the predictions of the model on \texttt{X}.
+\end{itemize}
+In order to remain fully compatible with the training pipeline, any model that needs a special feature $\delta$ to discriminate censored from uncensored examples obtains such feature from the last column of the data matrix \texttt{X}. By doing this, no further arguments are added to the estimator interface. However, certain functions used in the pipeline had to be adapted by adding a \texttt{censSVR} parameter, set to \textit{False} by default, to make sure that data matrices \texttt{X} are fed correctly to the estimator.
+
+These are the models implemented in the \texttt{customsvr} module:
 
 \chapter{Results and Discussion}
 \label{chres}
