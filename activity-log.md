@@ -1,5 +1,9 @@
 # SVMRegression - Research Activity Log
 
+## 28th May 2018
+* Finished *A Custom SVR Implementation* chapter draft.
+* Completed *Results and Discussion* chapter draft.
+
 ## 27th May 2018
 * Corrected error in Model 2 lagrangian, re-ran models. **It seems to be very good** (by c-index).
 * Finished *Alternative SVR Models for Censored Datasets* chapter draft.

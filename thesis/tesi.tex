@@ -18,6 +18,30 @@
 \renewcommand{\labelenumii}{\theenumii}
 \renewcommand{\theenumii}{\theenumi.\arabic{enumii}.}
 
+\usepackage{listings}
+\usepackage{color}
+
+\definecolor{dkgreen}{rgb}{0,0.6,0}
+\definecolor{gray}{rgb}{0.5,0.5,0.5}
+\definecolor{mauve}{rgb}{0.58,0,0.82}
+
+\lstset{frame=tb,
+  language=python,
+  aboveskip=3mm,
+  belowskip=3mm,
+  showstringspaces=false,
+  columns=flexible,
+  basicstyle={\small\ttfamily},
+  numbers=none,
+  numberstyle=\tiny\color{gray},
+  keywordstyle=\color{blue},
+  commentstyle=\color{dkgreen},
+  stringstyle=\color{mauve},
+  breaklines=true,
+  breakatwhitespace=true,
+  tabsize=3
+}
+
 \begin{document}
 \title{SV-based regression techniques for survival analysis: a case study on veterinary data}
 \author{Elvis NAVA}
@@ -399,7 +423,7 @@ A few workarounds were proposed in Section \ref{handlcens} to work with the stan
 A few modifications to the support vector machine model have been proposed specifically to work on unaltered censored datasets. What follows is an overview of a number of such models, also available in \cite{vanbelle11}.
 
 \section{SVCR}
-A simple alternative formulation of support vector regression, called SVCR \cite{shivaswamy07}, consists in relaxing the right-sided constraint in Eq. (\ref{smargprimal}) on censored data points. As shown in Fig. XX, this corresponds to changing the loss function so that, in the case of a censored observation, predictions landing on the right side of the center are not penalized. Furthermore, the model as given by \cite{vanbelle11} does not require an $\varepsilon$ parameter, setting the width of the $\varepsilon$-insensitive tube to zero.
+A simple alternative formulation of support vector regression, called SVCR \cite{shivaswamy07}, consists in relaxing the right-sided constraint in Eq.\ (\ref{smargprimal}) on censored data points. As shown in Fig. XX, this corresponds to changing the loss function so that, in the case of a censored observation, predictions landing on the right side of the center are not penalized. Furthermore, the model as given by \cite{vanbelle11} does not require an $\varepsilon$ parameter, setting the width of the $\varepsilon$-insensitive tube to zero.
 
 For each data point $(x_{i}, y_{i}, \delta_{i})$, $\delta_{i} = 1$ if the observation is uncensored, while $\delta_{i} = 0$ if it is censored. The SVCR model can therefore be formulated as:
 \begin{equation} \label{svcrprimal}
@@ -546,7 +570,7 @@ Note that since the output values are only meaningful when compared with one ano
 A major drawback of this model is that the number of constraints (or the number of multipliers in the Lagrangian dual) is $\mathcal{O}(\ell^{2})$, making the quadratic programming problem too computationally expensive. For this reason, a simplified model characterized by only $\mathcal{O}(\ell)$ constraints has been proposed in \cite{vanbelle08}. The reduction consists in comparing each data point $i$ with only one $\overline{j}(i)$, the comparable point with the largest survival time smaller than $y_{i}$, instead of doing it with all comparable data points.
 
 \section{Van Belle Model 1}
-A survival model similar to the previously mentioned RankSVMC simplification was presented in \textit{Van Belle et al.} \cite{vanbelle11b}, referred to by the authors as ``Model 1'' \cite{vanbelle11}. The difference between the two lies in the right hand side of the first set of constraints in Eq. (\ref{ranksvmcprimal}), where in the new fomulation $1$ is replaced by $y_{i} - y_{\overline{j}(i)}$.
+A survival model similar to the previously mentioned RankSVMC simplification was presented in \textit{Van Belle et al.} \cite{vanbelle11b}, referred to by the authors as ``Model 1'' \cite{vanbelle11}. The difference between the two lies in the right hand side of the first set of constraints in Eq.\ (\ref{ranksvmcprimal}), where in the new fomulation $1$ is replaced by $y_{i} - y_{\overline{j}(i)}$.
 
 Van Belle's Model 1 can therefore be formulated as:
 \begin{equation} \label{model1primal}
@@ -616,8 +640,10 @@ b = y_{i} - \langle w,\Phi(x_{i})\rangle \text{.}
 \label{chcustsvr}
 Initially, the analyses performed for this thesis made use of the scikit-learn \cite{sklearn} implementation of the standard Support Vector Regression model. The estimator class \texttt{SVR}, taken from the scikit-learn module \texttt{svm}, was used in the pipeline presented in Section \ref{learnpipeline}. However, it soon became apparent that alternative models not present in the library had to be used, and so a custom SVR implementation was needed. To this end, the \textbf{Gurobi} optimizer \cite{gurobi} was chosen as a quadratic programming solver.
 
+Fig. XX illustrates a comparison between the scikit-learn standard SVR and the custom implementation when tested on randomly generated functions.
+
 \section{The \texttt{customsvr} module}
-The custom estimator classes implemented for this thesis are collected in the \texttt{customsvr} module. They can substitute the scikit-learn estimators in the learning pipeline without compatibilty problems.
+The custom estimator classes implemented for this thesis are collected in the \texttt{customsvr} python module. They can substitute the scikit-learn estimators in the learning pipeline without compatibilty problems.
 
 An abstract class \texttt{AbstractSVR}, created using the \texttt{abc} (Abstract Base Classes) python module, defines the attributes and methods shared by all SVR models in the library. Its constructor \texttt{\_\_init\_\_} requires the parameters:
 \begin{itemize}
@@ -627,7 +653,7 @@ An abstract class \texttt{AbstractSVR}, created using the \texttt{abc} (Abstract
 \item \texttt{float coef0}. The independent term in the polynomial kernel ``poly'', ignored by other kernels. The default is 0.0;
 \item \texttt{bool verbose}. Enables verbose Gurobi output. False by default.
 \end{itemize}
-Its other defined methods are:
+The other methods defined by the abstract class are:
 \begin{itemize}
 \item \texttt{reset(self)}. It resets all internal attributes relative to training to their initial values, including the Gurobi optimizer instance;
 \item \texttt{k(self, a, b)}, with \texttt{a} and \texttt{b} being two numpy arrays. It computes the kernel product of two data points, based on the kernel function chosen at initialization;
@@ -639,15 +665,69 @@ Its other defined methods are:
 \end{itemize}
 \texttt{AbstractSVR} is extended by another abstract class, \texttt{AbstractCensSVR}, which adds features necessary for models specialized in censored data. This includes the methods:
 \begin{itemize}
-\item \texttt{comp(self, d, y, i, j)}, with \texttt{d} and \texttt{y} being numpy arrays, and \texttt{i} and \texttt{j} being integers. It checks, based on censor deltas \texttt{d} and target values \texttt{y}, if points at indices \texttt{i} and \texttt{j} are comparable, using the function detailed in Eq. (\ref{comparable});
-\item \texttt{scoreCindex(self, X, y)}, with \texttt{X} being a numpy matrix and \texttt{y} a numpy array. Called by \texttt{score} when \texttt{metric="c-index"}, it returns the concordance index (as defined in Eq. (\ref{c-index})) for the predictions of the model on \texttt{X}.
+\item \texttt{comp(self, d, y, i, j)}, with \texttt{d} and \texttt{y} being numpy arrays, and \texttt{i} and \texttt{j} being integers. It checks, based on censor deltas \texttt{d} and target values \texttt{y}, if points at indices \texttt{i} and \texttt{j} are comparable, using the function detailed in Eq.\ (\ref{comparable});
+\item \texttt{scoreCindex(self, X, y)}, with \texttt{X} being a numpy matrix and \texttt{y} a numpy array. Called by \texttt{score} when \texttt{metric="c-index"}, it returns the concordance index (as defined in Eq.\ (\ref{c-index})) for the predictions of the model on \texttt{X}.
 \end{itemize}
-In order to remain fully compatible with the training pipeline, any model that needs a special feature $\delta$ to discriminate censored from uncensored examples obtains such feature from the last column of the data matrix \texttt{X}. By doing this, no further arguments are added to the estimator interface. However, certain functions used in the pipeline had to be adapted by adding a \texttt{censSVR} parameter, set to \textit{False} by default, to make sure that data matrices \texttt{X} are fed correctly to the estimator.
+In order to remain fully compatible with the training pipeline, any model that needs a special feature $\delta$ to discriminate censored from uncensored examples obtains such feature from the last column of the data matrix \texttt{X}. By doing this, no further arguments are added to the estimator interface. However, certain functions used in the pipeline had to be adapted by adding a \texttt{censSVR} parameter, set to \textit{False} by default, to make sure that data matrices \texttt{X} are correctly fed to the estimator.
 
 These are the models implemented in the \texttt{customsvr} module:
+\begin{itemize}
+\item \texttt{SVR}, the standard Support Vector Regression model. Requires additional parameters $C$ and $\varepsilon$;
+\item \texttt{StandardCensSVR}, the standard SVR model applied to a censored dataset. Requires additional parameters $C$ and $\varepsilon$;
+\item \texttt{SVCR}. Requires the additional parameter $C$;
+\item \texttt{SVRC}. Requires additional parameters $C$, corresponding to the tuple $(C,C^{*})$ with $C^{*} > C$, followed by $CC$, corresponding to $(C_{c},C_{c}^{*})$ with $C_{c}^{*} < C_{c}$, and finally $\varepsilon$ and $\varepsilon_{c}$;
+\item \texttt{RankSVMC}. Requires the additional parameter $C$;
+\item \texttt{SimpleRankSVMC}, the simplification of RankSVMC with a linear number of constraints. Requires the additional parameter $C$;
+\item \texttt{Model1}. Requires the additional parameter $C$;
+\item \texttt{Model2}. Requires additional parameters $C_{r}$ and $C_{p}$.
+\end{itemize}
+
+\section{Quadratic programming with Gurobi}
+Support Vector Regression ultimately takes the form of a convex optimization problem solvable with quadratic programming. In praticular, \texttt{customsvr} makes use of the Gurobi optimization framework for constructing and solving models.
+
+Each class from the custom module implements its \texttt{fit} method using the Gurobi python API, also called \texttt{gurobipy}. All operations are performed by interacting with \texttt{gurobipy} objects, the most important of which is the \texttt{Model}, comprised of a set of variables, an objective function and a set of constraints. The variables themselves are objects of class \texttt{Var}, which when combined using overloaded standard python operators create expression objects (\texttt{LinExpr} and \texttt{QuadExpr}). An expresson can then be set as the objective function of a model (with \texttt{Model.setObjective}), or used as a constraint (\texttt{Constr} object).
+
+The setup and solution of the standard Support Vector Machine model is implemented as follows:
+\begin{lstlisting}
+self.model = gpy.Model('SVR')
+self.model.setParam('OutputFlag', self.verbose)
+
+l = len(X)
+a = self.model.addVars(l, 2, lb=0.0, ub=self.C, vtype=gpy.GRB.CONTINUOUS, name='a')
+self.model.update()
+
+fobj_kern = -(1/2) * gpy.quicksum((a[i,0] - a[i,1])*(a[j,0] - a[j,1])*self.k(X[i],X[j]) for i in range(l) for j in range(l))
+fobj_eps = -self.epsilon * gpy.quicksum(a[i,0] + a[i,1] for i in range(l))
+fobj_y = gpy.quicksum(y[i]*(a[i,0] - a[i,1]) for i in range(l))
+self.model.setObjective(fobj_kern + fobj_eps + fobj_y, gpy.GRB.MAXIMIZE)
+
+constr = gpy.quicksum(a[i,0] - a[i,1] for i in range(l))
+self.model.addConstr(constr, gpy.GRB.EQUAL, 0)
+
+self.model.optimize()
+if self.model.Status != gpy.GRB.OPTIMAL:
+	raise ValueError('optimal solution not found!')
+\end{lstlisting}
+As a note, the \texttt{quicksum} function is a more efficient alternative to the native python \texttt{sum} function for constructing Gurobi expressions from an iterable.
 
 \chapter{Results and Discussion}
 \label{chres}
+After the architecture described in previous Chapters was set set up, many experiments have been performed on the \texttt{dogs\_2006\_2016} dataset involving numerous combinations of models and training pipeline settings. This Chapter is about the results of these experiments and their discussion.
+
+\section{First SVR experiments}
+Initially, the tests performed on the dataset all involved the standard SVR model with different training pipeline configurations, scored with the $R^2$ metric. The changing settings include the use of different feature subsets, the ``drop'' and ``max'' censoring policies, the use of scalers and outlier elimination. Model selection has been performed by 5 runs of repeated holdout, with a test set of 10 points and a validation set of 15 points.
+
+The results, shown in Table X, suggest a generally poor performance. $R^2$ scores hovering around zero are an indication of a model with prediction power not better than simply taking the mean of the target values, as it means that $\sum(y_{\text{true}} - y_{\text{pred}})^2 \simeq \sum(y_{\text{true}} - \mu_{y_{\text{true}}})^2$. When the score becomes negative, it means that the model performs even worse than this baseline.
+
+It becomes clear from this situation that the standard SVR model suffers from severe limitations when dealing with censored data, expecially while working on such a small and noisy dataset. This conclusion is what led, in the context of this thesis, to the search for alternative models able to deal with censoring.
+
+\section{Alternative models experiments}
+
+With the introduction of alternative models specialized in censored data, a new batch of experiments has been conducted in order to compare their performance. Since not all of these models produce results that can be considered meaningful as standalone survival times, the preferred scoring metric chosen for the comparisons was the \textit{c-index}. Model selection has been performed by 5 runs of repeated holdout, with a test set of 10 points and a validation set of 15 points.
+
+The results, shown in Table Y, indicate a decent ranking performance (by c-index), while prediction performance (by $R^2$) remains poor. Even though the c-index score of the standard SVR model is already decent, the introduction of censoring-specific loss functions with SVCR and SVRC shows slightly increased performance. On the other hand, both RankSVMC (in its simplified version) and Model 1 perform consistently worse than any other model. Finally Model 2, with its combination of all approaches, appears to be the best scoring overall.
+
+After these trials, the general conclusion is that the dataset in question is not of sufficient size and quality for precise predictions of survival times to be made. Instead, one can perform a ranking of survival times in order to establish risk groups. When considering this approach for performance evaluation, Model 2 from \textit{Van Belle et al.} \cite{vanbelle11} has been shown to perform very well on \texttt{dogs\_2006\_2016}, with a c-index score similar to those obtained in the original paper on notable public datasets. It therefore appears that, while purely ranking-based methods do not perform well, the best model is that which makes use of both regression and ranking constraints.
 
 \chapter*{Conclusions}
 \label{concl}
