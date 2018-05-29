@@ -68,17 +68,28 @@
 \beforepreface
 \topskip0pt
 \vspace*{\fill}
-{\hfill \Large {\sl dedicated to \dots}}
+{\hfill \Large {\sl dedicated to Iain M. Banks}}
 \vspace*{\fill}
 % 
 %			PREFACE
 %
 \prefacesection{Preface}
-This is a preface.
+This Bachelor's Thesis, produced for my \textit{Laurea in Informatica} at the \textit{Università degli Studi di Milano}, is titled ``SV-Based Regression Techniques for Survival Analysis: A Case Study on Veterinary Data''. The related academic apprenticeship work, conducted with my advisors Prof.\ Dario Malchiodi and Prof.\ Anna Maria Zanaboni, began in October 2017 and was concluded in June 2018.
+
+The topic of my thesis was suggested by my advisor Prof.\ Dario Malchiodi after I expressed interest in machine learning algorithms and applications, while attending elective courses in optimization, artificial intelligence and information theory. I immediately accepted his offer and began familiarizing myself with the literature, implementing models and conducting experiments.
+
+What followed was a sustained effort towards the completion of the project that would mark the end of the third and final year of my \textit{Corso di Laurea in Informatica}.
 %
 %			ACKNOWLEDGMENTS
 %
 \prefacesection{Acknowledgments}
+I thank my advisors, Prof.\ Dario Malchiodi and Prof.\ Anna Maria Zanaboni, for their guidance in the production of this thesis.
+
+I would also like to express my gratitude to all faculty professors who made me passionate in their subjects with the courses they taught.
+
+I thank the University and my city for providing me with scholarships for my undergraduate studies.
+
+I am grateful to my partner, my family and friends for their unwavering support.
 
 \afterpreface
 
@@ -86,17 +97,26 @@ This is a preface.
 \chapter*{Introduction}
 \label{intro}
 \addcontentsline{toc}{chapter}{Introduction}
-The subject of this thesis is the use of regression techniques, specifically support vector machine regression, in the analysis and prediction of survival times. The techniques are applied to a dataset of dogs' veterinary records, with the goal of modeling survival time from the details of medical visits. As with most similar datasets, the right-censoring of survival times requires a modification to the standard support vector machine algorithm in order to be dealt with. For this reason, this work includes the implementation of custom SVM models.
+The subject of this thesis is the use of machine learning techniques, specifically Support Vector Machine Regression, in the analysis and prediction of survival times. By interpreting survival time as a variable dependent on a group of features, the task becomes that of estimating a function while minimizing risk. Support Vector Regression translates this into an optimization problem.
+
+The techniques are applied to a dataset of dogs' veterinary records, with the goal of modeling survival time from the details of medical visits. To do this, the dataset needs to be first processed accordingly by checking its consistency, handling any missing data, and transforming/selecting its features. Moreover, the learning models employed present hyperparameters that need to be tuned in what is called model selection, with techniques such as holdout or cross-validation.
+
+As with most similar datasets, the right-censoring of survival times cannot be dealt with correctly by using a ``standard'' SVR model. Thus, a few alternative models have to be taken in consideration. These include regression models with modified constraints for censored inputs and re-formulations of survival analysis as a ranking problem. For practical purposes, this work includes the implementation of a custom SVR python module.
 
 The thesis begins in Chapter \ref{chsvm} with an overview of function estimation and risk minimization, followed by a description of support vector machine regression for both the linear and the nonlinear case.
 
-In Chapter \ref{chprepr} the veterinary dataset analyzed in this thesis is first presented, then explored after a number of preprocessing steps, performed to guarantee data consistency and to deal with problems such as missing values.
+In Chapter \ref{chprepr} the veterinary dataset analyzed in this thesis is first presented, then explored after a number of preprocessing steps, performed to guarantee data consistency and to deal with problems such as missing or censored values.
 
-Chapter \ref{chmodsel} is about model selection, achieved by tuning the hyperparameters of the support vector regression algorithm. Feature engineering is also considered as a way of obtaining a better performing regression models.
+Chapter \ref{chmodsel} is about model selection, achieved by tuning the hyperparameters of the support vector regression algorithm. Feature engineering is also considered as a way of obtaining a better performing model.
 
-\ldots TODO
+In Chapter \ref{chaltsvr} a number of alternative SVR models are described and derived as optimization problems, to be solved by quadratic programming on their Lagrangian dual.
 
-%todo:Technologies used
+Chapter \ref{chcustsvr} details the implementation of a custom SVR python module.
+
+Finally, Chapter \ref{chres} is about the results of the experiments conducted by applying the different techniques on the dataset with various combinations of settings.
+\newpage
+
+A wide range of technologies has been used for the purpose of this work. The code for the thesis was written in python, using libraries numpy \cite{numpy}, pandas \cite{pandas} and scikit-learn \cite{sklearn}. The dataset checks, explorations and the experiments were conducted with jupyter notebooks \cite{jupyter}. The figures were rendered with python libraries matplotlib \cite{matplotlib} and seaborn. The custom SVR implementation was made using the Gurobi optimizer \cite{gurobi}. \LaTeX\ was used for the writing of the thesis, and git for version control.
 
 \chapter{Support Vector Machines for Regression}
 \label{chsvm}
@@ -330,7 +350,7 @@ The considered dataset, as is the case with most real world data, contains NA (N
 \item \textbf{Dropping NA values}. This procedure consists in simply deleting all data points that include NA values in any feature field. It does not introduce potentially spurious information, but effectively reduces the dataset's size.
 \item \textbf{Using the mean value}. This procedure consists in filling any NA value with the mean value of all data points for the corresponding feature. It maintains the dataset's size but it might alter the distributions of features, especially when the number of NA values is high.
 \item \textbf{Sampling from a normal distribution}. This technique assumes a normal distribution for the involved features, and replaces NAs with values drawn from an approximation of such distributions. It maintains the dataset's size and feature distributions, but introduces an element of randomness in the analysis. Before applying this technique it's important to verify the normality of the affected features using a tool such as a QQ-plot.
-\item \textbf{Using values predicted from a model (e.g., Linear Regression)}. TODO
+%potential TODO \item \textbf{Using values predicted from a model (e.g., Linear Regression)}.
 \end{itemize}
 
 \section{Handling censored data} \label{handlcens}
@@ -349,15 +369,15 @@ Firstly, even after preprocessing the dataset, the features have to be scaled so
 
 But most importantly, models have to be scored and selected, as algorithms such as those based on support vectors depend on a number of hyperparameters that cannot be determined a priori. Common techniques for model selection are holdout and K-fold cross-validation.
 
-All these steps are part of a learning pipeline, which has been implemented for this thesis with the use of python libraries \textbf{numpy} \cite{numpy}, \textbf{pandas} \cite{pandas}, \textbf{scikit-learn} \cite{sklearn}, and of custom written functions.
+All these steps are part of a learning pipeline, which has been implemented for this thesis with the use of python libraries numpy \cite{numpy}, pandas \cite{pandas}, scikit-learn \cite{sklearn}, and of custom written functions.
 
 \section{Feature transformation and filtering}
 \subsection*{Feature scalers}
 Some machine learning algorithms assume that input features have zero mean and unit variance. Even if such assumptions are not needed, unbalanced features may cause numerical problems, affecting computation speed dramatically. Therefore, the scaling of data is commonplace in the first stages of machine learning pipelines. Scikit-learn provides many scalers, such as:
 \begin{itemize}
-\item \textbf{StandardScaler}, which standardizes features by subtracting the mean and scaling to unit variance.
-\item \textbf{RobustScaler}, which scales features using statistics robust to outliers.
-\item \textbf{QuantileTransformer}, which transforms features to make them follow a predefined distribution.
+\item \texttt{StandardScaler}, which standardizes features by subtracting the mean and scaling to unit variance.
+\item \texttt{RobustScaler}, which scales features using statistics robust to outliers.
+\item \texttt{QuantileTransformer}, which transforms features to make them follow a predefined distribution.
 \end{itemize}
 The scaler is ``fitted'' on training data, and can then be used to transform both training data and new points.
 
@@ -638,7 +658,7 @@ b = y_{i} - \langle w,\Phi(x_{i})\rangle \text{.}
 
 \chapter{A Custom SVR Implementation}
 \label{chcustsvr}
-Initially, the analyses performed for this thesis made use of the scikit-learn \cite{sklearn} implementation of the standard Support Vector Regression model. The estimator class \texttt{SVR}, taken from the scikit-learn module \texttt{svm}, was used in the pipeline presented in Section \ref{learnpipeline}. However, it soon became apparent that alternative models not present in the library had to be used, and so a custom SVR implementation was needed. To this end, the \textbf{Gurobi} optimizer \cite{gurobi} was chosen as a quadratic programming solver.
+Initially, the analyses performed for this thesis made use of the scikit-learn \cite{sklearn} implementation of the standard Support Vector Regression model. The estimator class \texttt{SVR}, taken from the scikit-learn module \texttt{svm}, was used in the pipeline presented in Section \ref{learnpipeline}. However, it soon became apparent that alternative models not present in the library had to be used, and so a custom SVR implementation was needed. To this end, the Gurobi optimizer \cite{gurobi} was chosen as a quadratic programming solver.
 
 Fig. XX illustrates a comparison between the scikit-learn standard SVR and the custom implementation when tested on randomly generated functions.
 
@@ -712,10 +732,10 @@ As a note, the \texttt{quicksum} function is a more efficient alternative to the
 
 \chapter{Results and Discussion}
 \label{chres}
-After the architecture described in previous Chapters was set set up, many experiments have been performed on the \texttt{dogs\_2006\_2016} dataset involving numerous combinations of models and training pipeline settings. This Chapter is about the results of these experiments and their discussion.
+After the architecture described in previous Chapters had been set set up, many experiments were performed on the \texttt{dogs\_2006\_2016} dataset involving numerous combinations of models and training pipeline settings. This Chapter is about the results of these experiments and their discussion.
 
 \section{First SVR experiments}
-Initially, the tests performed on the dataset all involved the standard SVR model with different training pipeline configurations, scored with the $R^2$ metric. The changing settings include the use of different feature subsets, the ``drop'' and ``max'' censoring policies, the use of scalers and outlier elimination. Model selection has been performed by 5 runs of repeated holdout, with a test set of 10 points and a validation set of 15 points.
+Initially, the tests performed on the dataset all involved the standard SVR model with different training pipeline configurations, scored with the $R^2$ metric. The changing settings include the use of different feature subsets, the ``drop'' and ``max'' censoring policies, the use of scalers and outlier elimination. Model selection was performed by 5 runs of repeated holdout, with a test set of 10 points and a validation set of 15 points.
 
 The results, shown in Table X, suggest a generally poor performance. $R^2$ scores hovering around zero are an indication of a model with prediction power not better than simply taking the mean of the target values, as it means that $\sum(y_{\text{true}} - y_{\text{pred}})^2 \simeq \sum(y_{\text{true}} - \mu_{y_{\text{true}}})^2$. When the score becomes negative, it means that the model performs even worse than this baseline.
 
@@ -725,13 +745,20 @@ It becomes clear from this situation that the standard SVR model suffers from se
 
 With the introduction of alternative models specialized in censored data, a new batch of experiments has been conducted in order to compare their performance. Since not all of these models produce results that can be considered meaningful as standalone survival times, the preferred scoring metric chosen for the comparisons was the \textit{c-index}. Model selection has been performed by 5 runs of repeated holdout, with a test set of 10 points and a validation set of 15 points.
 
-The results, shown in Table Y, indicate a decent ranking performance (by c-index), while prediction performance (by $R^2$) remains poor. Even though the c-index score of the standard SVR model is already decent, the introduction of censoring-specific loss functions with SVCR and SVRC shows slightly increased performance. On the other hand, both RankSVMC (in its simplified version) and Model 1 perform consistently worse than any other model. Finally Model 2, with its combination of all approaches, appears to be the best scoring overall.
+The results, shown in Table Y, indicate a good ranking performance (by c-index), while prediction performance (by $R^2$) remains poor. Even though the c-index score of the standard SVR model is already decent, the introduction of censoring-specific loss functions with SVCR and SVRC shows slightly increased performance. On the other hand, both RankSVMC (in its simplified version) and Model 1 perform consistently worse than any other model. Finally Model 2, with its combination of all approaches, appears to be the best scoring overall.
 
 After these trials, the general conclusion is that the dataset in question is not of sufficient size and quality for precise predictions of survival times to be made. Instead, one can perform a ranking of survival times in order to establish risk groups. When considering this approach for performance evaluation, Model 2 from \textit{Van Belle et al.} \cite{vanbelle11} has been shown to perform very well on \texttt{dogs\_2006\_2016}, with a c-index score similar to those obtained in the original paper on notable public datasets. It therefore appears that, while purely ranking-based methods do not perform well, the best model is that which makes use of both regression and ranking constraints.
 
 \chapter*{Conclusions}
 \label{concl}
 \addcontentsline{toc}{chapter}{Conclusions}
+The objective of this work was to conduct survival analysis on a specific veterinary dataset with the use of Support Vector-based regression techniques.
+
+The thesis opened with an overview of Support Vector Machine Regression in the context of function estimation, its purpose being the prediction of survival time values from medical visit details. Afterwards, the discussion moved onto the dataset itself and the necessary preprocessing steps it had to go through to become exploitable. Eventually, the learning pipeline was completed after the discussion of different model selection techniques.
+
+However, the ``standard'' Support Vector Regression approach soon proved insufficient as it was not designed to work with censored data, which is very common in survival analysis settings. For this reason, a series of alternative SVR models were explored and implemented as part of a custom SVR python package. The different proposals included modified loss functions for censored examples, the formulation of survival analysis as a ranking problem, and the combination of regression and ranking approaches.
+
+In conclusion, while precise survival time predictions weren't deemed attainable with the present data, the use of SVR models for ranking observations and establishing risk groups was a success. The best performing model was identified as that which optimizes for both prediction and ranking.
 
 %
 %			BIBLIOGRAPHY

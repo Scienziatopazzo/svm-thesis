@@ -1,5 +1,8 @@
 # SVMRegression - Research Activity Log
 
+## 29th May 2018
+* Written *Conclusions* and rewritten the *Introduction* to the thesis.
+
 ## 28th May 2018
 * Finished *A Custom SVR Implementation* chapter draft.
 * Completed *Results and Discussion* chapter draft.
