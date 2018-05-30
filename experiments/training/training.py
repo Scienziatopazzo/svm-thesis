@@ -6,7 +6,7 @@ from queue import Empty
 
 #Grid search model selection for SVR with holdout.
 #Can be ran multiple times with 'runs' parameter (repeated holdout)
-def SVR_gridsearch_holdout(X, y, estimator, param_grid, test_size, val_size, runs=1, scaler=None, outlier_detector=None, nprocs=8, censSVR=False, custom_metric=None):
+def SVR_gridsearch_holdout(X, y, estimator, param_grid, test_size, val_size, runs=1, scaler=None, outlier_detector=None, nprocs=8, censSVR=False, custom_metric=None, other_cm=[]):
     X_TrainAndValidation, X_Test, y_TrainAndValidation, y_Test = train_test_split(X, y.astype('float64'), test_size=test_size)
     best_score = -np.inf
     best_params = {}
@@ -82,8 +82,14 @@ def SVR_gridsearch_holdout(X, y, estimator, param_grid, test_size, val_size, run
 
     best_svr.fit(X_TrainAndValidation, y_TrainAndValidation)
     test_score = best_svr.score(X_Test, y_Test, metric=custom_metric) if custom_metric is not None else best_svr.score(X_Test, y_Test)
+    oth_test_scores = []
+    for oth_metric in other_cm:
+        oth_test_scores.append(best_svr.score(X_Test, y_Test, metric=oth_metric))
 
-    return (best_params, test_score)
+    if len(other_cm) > 0:
+        return (best_params, test_score, oth_test_scores)
+    else:
+        return (best_params, test_score)
 
 def proc_train(b_queue, estimator, X_Train, y_Train, X_Validation, y_Validation, fit_params, custom_metric):
     svr = estimator(**fit_params)

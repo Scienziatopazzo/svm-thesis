@@ -1,0 +1,50 @@
+Experiment 1: 5 runs of rep. holdout, re-run 5 times
+
+Model 0: mean R2 -1.0915405691002436, sd R2 0.7466020342542221, mean c-index 0.644002664002664, sd c-index 0.12664181202759647
+Runs:
+R2 -1.7741568804568568, c-index 0.5, parameters: {'C': 10, 'coef0': 1, 'degree': 2, 'epsilon': 1, 'gamma': 0.01, 'kernel': 'poly'}
+R2 -0.5487192121043105, c-index 0.5428571428571428, parameters: {'C': 5, 'coef0': 100, 'degree': 3, 'epsilon': 0.1, 'gamma': 0.0001, 'kernel': 'poly'}
+R2 -0.08080195759476205, c-index 0.6666666666666666, parameters: {'C': 10, 'coef0': 1, 'degree': 2, 'epsilon': 0.01, 'gamma': 0.01, 'kernel': 'poly'}
+R2 -1.3423852486387786, c-index 0.6923076923076923, parameters: {'C': 5, 'coef0': 100, 'degree': 2, 'epsilon': 0.01, 'gamma': 0.001, 'kernel': 'poly'}
+R2 -1.7116395467065098, c-index 0.8181818181818182, parameters: {'C': 5, 'coef0': 1, 'degree': 3, 'epsilon': 0.01, 'gamma': 0.01, 'kernel': 'poly'}
+
+Model 1: mean R2 -1.6657425987109813, sd R2 2.075489172621416, mean c-index 0.6421978021978021, sd c-index 0.11937638458160867
+Runs:
+R2 -0.3392094070740723, c-index 0.4666666666666667, parameters: {'C': 10, 'coef0': 0, 'degree': 2, 'epsilon': 0.01, 'gamma': 0.01, 'kernel': 'poly'}
+R2 -2.086326877901639, c-index 0.6285714285714286, parameters: {'C': 1, 'coef0': 100, 'degree': 3, 'epsilon': 0.1, 'gamma': 0.01, 'kernel': 'poly'}
+R2 -0.5999056057258054, c-index 0.7948717948717948, parameters: {'C': 1, 'coef0': 10, 'degree': 3, 'epsilon': 0.01, 'gamma': 0.0001, 'kernel': 'poly'}
+R2 -5.1228762776827885, c-index 0.6285714285714286, parameters: {'C': 1, 'coef0': 100, 'degree': 3, 'epsilon': 1, 'gamma': 0.01, 'kernel': 'poly'}
+R2 -0.1803948251706009, c-index 0.6923076923076923, parameters: {'C': 10, 'coef0': 1, 'degree': 2, 'epsilon': 0.01, 'gamma': 0.01, 'kernel': 'poly'}
+
+Model 2: mean R2 -0.7714072010938852, sd R2 0.9389514956706391, mean c-index 0.7005994005994006, sd c-index 0.09340951675949254
+Runs:
+R2 -1.1351310966344696, c-index 0.6923076923076923, parameters: {'C': 10, 'coef0': 1, 'degree': 2, 'epsilon': 0.01, 'gamma': 0.001, 'kernel': 'poly'}
+R2 0.2735610265847622, c-index 0.7435897435897436, parameters: {'C': 1, 'coef0': 10, 'degree': 3, 'epsilon': 0.01, 'gamma': 0.01, 'kernel': 'poly'}
+R2 -2.162709821964625, c-index 0.8333333333333334, parameters: {'C': 1, 'coef0': 10, 'degree': 3, 'epsilon': 0.01, 'gamma': 0.0001, 'kernel': 'poly'}
+R2 -0.655597209705179, c-index 0.5909090909090909, parameters: {'C': 5, 'coef0': 100, 'degree': 3, 'epsilon': 0.1, 'gamma': 0.001, 'kernel': 'poly'}
+R2 -0.17715890374991483, c-index 0.6428571428571429, parameters: {'C': 1, 'coef0': 0, 'degree': 3, 'epsilon': 0.01, 'gamma': 0.01, 'kernel': 'poly'}
+
+Model 3: mean R2 -3.2109477041655583, sd R2 3.5736137821638736, mean c-index 0.6133333333333333, sd c-index 0.17398737005389672
+Runs:
+R2 -1.1330117598438694, c-index 0.3111111111111111, parameters: {'C': 1, 'coef0': 10, 'degree': 3, 'epsilon': 0.01, 'gamma': 0.0001, 'kernel': 'poly'}
+R2 -0.46245700948156365, c-index 0.6888888888888889, parameters: {'C': 1, 'coef0': 100, 'degree': 2, 'epsilon': 0.01, 'gamma': 0.0001, 'kernel': 'poly'}
+R2 -0.5509540228656586, c-index 0.7555555555555555, parameters: {'C': 1, 'coef0': 100, 'degree': 2, 'epsilon': 0.01, 'gamma': 0.01, 'kernel': 'poly'}
+R2 -5.5202764225456695, c-index 0.6666666666666666, parameters: {'C': 10, 'coef0': 1, 'degree': 2, 'epsilon': 0.01, 'gamma': 0.01, 'kernel': 'poly'}
+R2 -8.38803930609103, c-index 0.6444444444444445, parameters: {'C': 5, 'coef0': 10, 'degree': 2, 'epsilon': 1, 'gamma': 0.01, 'kernel': 'poly'}
+
+Model 4: mean R2 -0.7953699398574802, sd R2 0.6020097623237184, mean c-index 0.5413419913419913, sd c-index 0.06801153752091513
+Runs:
+R2 -0.8100499667855667, c-index 0.4523809523809524, parameters: {'C': 10, 'coef0': 100, 'degree': 2, 'epsilon': 0.01, 'gamma': 0.01, 'kernel': 'poly'}
+R2 -0.5991162765539162, c-index 0.5238095238095238, parameters: {'C': 10, 'coef0': 100, 'degree': 3, 'epsilon': 0.01, 'gamma': 0.001, 'kernel': 'poly'}
+R2 -0.7560342799769153, c-index 0.5227272727272727, parameters: {'C': 10, 'coef0': 100, 'degree': 3, 'epsilon': 0.01, 'gamma': 0.001, 'kernel': 'poly'}
+R2 -1.7379857080389294, c-index 0.6363636363636364, parameters: {'C': 5, 'coef0': 1, 'degree': 2, 'epsilon': 0.1, 'gamma': 0.0001, 'kernel': 'poly'}
+R2 -0.07366346793207312, c-index 0.5714285714285714, parameters: {'C': 10, 'coef0': 100, 'degree': 3, 'epsilon': 0.01, 'gamma': 0.0001, 'kernel': 'poly'}
+
+Model 5: mean R2 -10.722179912495262, sd R2 12.384721263376163, mean c-index 0.4537129537129537, sd c-index 0.14134702116976433
+Runs:
+R2 -0.20591790040537372, c-index 0.5, parameters: {'C': 10, 'coef0': 0, 'degree': 2, 'epsilon': 0.01, 'gamma': 0.01, 'kernel': 'poly'}
+R2 -7.844906291463568, c-index 0.5909090909090909, parameters: {'C': 1, 'coef0': 1, 'degree': 3, 'epsilon': 0.1, 'gamma': 0.01, 'kernel': 'poly'}
+R2 -30.30683269046762, c-index 0.21428571428571427, parameters: {'C': 1, 'coef0': 100, 'degree': 3, 'epsilon': 1, 'gamma': 0.01, 'kernel': 'poly'}
+R2 -0.8468269956777164, c-index 0.48717948717948717, parameters: {'C': 1, 'coef0': 1, 'degree': 3, 'epsilon': 0.01, 'gamma': 0.01, 'kernel': 'poly'}
+R2 -14.406415684462035, c-index 0.47619047619047616, parameters: {'C': 1, 'coef0': 100, 'degree': 3, 'epsilon': 0.01, 'gamma': 0.01, 'kernel': 'poly'}
+
