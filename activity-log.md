@@ -1,5 +1,8 @@
 # SVMRegression - Research Activity Log
 
+## 31th May 2018
+* Implemented and ran `experiments2.py` and `experiments3.py`.
+
 ## 30th May 2018
 * Implemented the first set of experiments to be run multiple times in `experiments1.py`.
 * Ran experiments 1. Todo: make experiments 2 about feature engineering combinations.
