@@ -1,5 +1,9 @@
 # SVMRegression - Research Activity Log
 
+## 3rd June 2018
+* Implemented and ran `experiments4.py`.
+* Started producing figures for the thesis.
+
 ## 31th May 2018
 * Implemented and ran `experiments2.py` and `experiments3.py`.
 

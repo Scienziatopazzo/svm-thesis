@@ -42,6 +42,10 @@
   tabsize=3
 }
 
+\usepackage{import}
+\usepackage{pgf}
+\DeclareUnicodeCharacter{2212}{-}% support older LaTeX versions
+
 \begin{document}
 \title{SV-based regression techniques for survival analysis: a case study on veterinary data}
 \author{Elvis NAVA}
@@ -334,15 +338,23 @@ A check on the \textit{Age} value was meant to determine whether it was recorded
 \section{Exploratory analysis} \label{explanal}
 After the first checks necessary to assess data consistency, the dataset was further inspected using some exploratory analysis tools. The insights obtained with this techniques proved useful for subsequent tasks such as feature selection and normalization.
 \subsection*{Feature correlation}
-A correlation heatmap of the available features was used to highlight possible dependencies among them. In particular, Fig. XX shows that the following groups of features exhibit a relevant correlation:
+A correlation heatmap of the available features was used to highlight possible dependencies among them. In particular, Fig. \ref{corrheatmap} shows that the following groups of features exhibit a relevant correlation:
 \begin{itemize}
 \item \textit{IP Gravity} and \textit{Vrig tric}: a subsequent test confirmed that the first feature is indeed a discretization of the second one;
 \item \textit{Dead} and \textit{MC} (Cardiac arrest death);
 \item \textit{FE \%} and \textit{FS \%};
 \item \textit{EDVI}, \textit{ESVI}, \textit{Allo diast} and \textit{Allo sist} (especially \textit{EDVI} with \textit{Allo diast} and \textit{ESVI} with \textit{Allo sist}).
 \end{itemize}
+
+\begin{figure}
+  \caption{Correlation heatmap of \texttt{dogs\_2006\_2016} features.}
+  \label{corrheatmap}
+  \centering
+  	\includegraphics[width=1.0\textwidth]{figures/heatmap.pdf}
+\end{figure}
+
 \subsection*{Scatter plots with \textit{Survival time} and other features}
-\textit{Survival time} was plotted against all the other features. As shown in Fig. YY, no obvious patterns were found, except for a slight correlation between \textit{Age} and \textit{Asx/ao}.
+\textit{Survival time} was plotted against all the other features. No obvious patterns were found, except for a slight correlation between \textit{Age} and \textit{Asx/ao}.
 
 \section{Handling missing data}
 The considered dataset, as is the case with most real world data, contains NA (Not Available) values that need to be handled in some way before being used as input for model training. The following policies were experimented with in order to deal with this problem:
