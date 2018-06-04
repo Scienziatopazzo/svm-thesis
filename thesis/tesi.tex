@@ -9,6 +9,7 @@
 \usepackage[english]{babel}
 \usepackage{tesi}
 \usepackage[nottoc]{tocbibind}
+\usepackage{chngpage}
 
 \usepackage[utf8]{inputenc}
 
@@ -41,10 +42,6 @@
   breakatwhitespace=true,
   tabsize=3
 }
-
-\usepackage{import}
-\usepackage{pgf}
-\DeclareUnicodeCharacter{2212}{-}% support older LaTeX versions
 
 \begin{document}
 \title{SV-based regression techniques for survival analysis: a case study on veterinary data}
@@ -182,7 +179,14 @@ c(x,y,f(x)) = \vert y - f(x) \vert_{\varepsilon} = \begin{cases}
 \vert y - f(x) \vert - \varepsilon &\ \text{otherwise} \text{.}
 \end{cases}
 \end{equation}
-Figure XX. illustrates the region of $ \mathcal{X} \times \mathbb{R} $, called ``$ \varepsilon $-insensitive tube'', within which predictions are not penalized, while those laying outside are penalized linearly. This is different from the squared distance loss function used in standard least squares regression.
+Figure \ref{epstubefig} illustrates the region of $ \mathcal{X} \times \mathbb{R} $, called ``$ \varepsilon $-insensitive tube'', within which predictions are not penalized, while those laying outside are penalized linearly. This is different from the squared distance loss function used in standard least squares regression.
+
+\begin{figure}[h]
+  \centering
+  	\includegraphics[width=0.5\textwidth]{figures/epstube.pdf}
+  \caption{$\varepsilon$-insensitive tube corresponding to an $\varepsilon$-insensitive loss function.}
+  \label{epstubefig}
+\end{figure}
 
 The optimization problem (\ref{smargprimal}), referred to as the \textit{primal} problem, is more easily solved in its \textit{dual} formulation. This is constructed from the Lagrangian of the objective function:
 \begin{equation} \label{lagrangian}
@@ -346,11 +350,11 @@ A correlation heatmap of the available features was used to highlight possible d
 \item \textit{EDVI}, \textit{ESVI}, \textit{Allo diast} and \textit{Allo sist} (especially \textit{EDVI} with \textit{Allo diast} and \textit{ESVI} with \textit{Allo sist}).
 \end{itemize}
 
-\begin{figure}
-  \caption{Correlation heatmap of \texttt{dogs\_2006\_2016} features.}
-  \label{corrheatmap}
+\begin{figure}[h]
   \centering
   	\includegraphics[width=1.0\textwidth]{figures/heatmap.pdf}
+  \caption{Correlation heatmap of \texttt{dogs\_2006\_2016} features.}
+  \label{corrheatmap}
 \end{figure}
 
 \subsection*{Scatter plots with \textit{Survival time} and other features}
@@ -404,12 +408,36 @@ There are many different ways of detecting outliers in multidimensional data. An
 \subsection*{New feature: Therapy beginning to first visit time delta}
 The \textit{Therapy started} column in the dataset is not always equal to \textit{First visit}. In some cases, first visits were performed when a patient had already started treatment under different supervision. This time difference is however not expressed in any apposite feature, and is therefore lost after the removal of dates when cleaning the dataset from columns not useful for learning.
 
-The new feature \textit{Therapy to visit} can thus be introduced, computed as $ \text{\emph{First visit}} - \text{\emph{Therapy started}} $ expressed in days. Its histogram, joint plot with \textit{Survival time} and the new correlation matrix can be seen in Fig. XX.
+The new feature \textit{Therapy to visit} can thus be introduced, computed as $ \text{\emph{First visit}} - \text{\emph{Therapy started}} $ expressed in days. Its joint plot with \textit{Survival time} and the new correlation matrix can be seen in Figures \ref{thertovisjfig} and \ref{thertoviscfig}.
+
+\begin{figure}[hp]
+  \centering
+  	\includegraphics[width=0.7\textwidth]{figures/thertovisjoint.pdf}
+  \caption{Joint plot of \textit{Therapy to visit} feature and \textit{Survival time}.}
+  \label{thertovisjfig}
+  \vspace{0.7cm}
+  \centering
+  	\includegraphics[width=0.8\textwidth]{figures/thertoviscorr.pdf}
+  \caption{Correlation heatmap of \texttt{dogs\_2006\_2016} with the added \textit{Therapy to visit} feature.}
+  \label{thertoviscfig}
+\end{figure}
 
 \subsection*{Removing subsets of highly correlated features}
 As noticed in the original exploratory analysis, some features in the dataset are highly correlated with each other. Removing features having high correlation with other ones has the effect of reducing the dimensionality of the feature space, thus simplifying learning, without losing too much useful information.
 
-Groups of highly correlated features have been identified in Section \ref{explanal}, as Fig. XX shows. Any combination of features in these groups would be suitable for removal. Two ways of doing this are to either remove \textit{IP Gravity}, \textit{FS \%}, \textit{ESVI}, \textit{Allo diast} and \textit{Allo sist}; or to remove \textit{IP Gravity}, \textit{FE \%}, \textit{EDVI}, \textit{ESVI} and \textit{Allo sist}. The resulting correlation heatmaps are shown in Fig. YY.
+Groups of highly correlated features have been identified in Section \ref{explanal}, as Fig. \ref{corrheatmap} shows. Any combination of features in these groups would be suitable for removal. Two ways of doing this are to either remove \textit{IP Gravity}, \textit{FS \%}, \textit{ESVI}, \textit{Allo diast} and \textit{Allo sist}; or to remove \textit{IP Gravity}, \textit{FE \%}, \textit{EDVI}, \textit{ESVI} and \textit{Allo sist}. The resulting correlation heatmaps are shown in Figures \ref{featsubset1} and \ref{featsubset2}.
+
+\begin{figure}[hp]
+  \centering
+  	\includegraphics[width=0.8\textwidth]{figures/featsubset1.pdf}
+  \caption{Correlation heatmap of \texttt{dogs\_2006\_2016} removing features \textit{Vrig tric}, \textit{FS \%}, \textit{ESVI}, \textit{Allo diast} and \textit{Allo sist}.}
+  \label{featsubset1}
+  \vspace{0.7cm}
+  \centering
+  	\includegraphics[width=0.8\textwidth]{figures/featsubset2.pdf}
+  \caption{Correlation heatmap of \texttt{dogs\_2006\_2016} removing features \textit{Vrig tric}, \textit{FE \%}, \textit{EDVI}, \textit{ESVI}, and \textit{Allo sist}.}
+  \label{featsubset2}
+\end{figure}
 
 \section{Cross-validation and repeated holdout} \label{cvalreph}
 In order to estimate the out-of-sample performance of a model, the most commonly taken approach is to split the original dataset into a training set and a test set. Only the training set is used during learning, while the test set is set aside and not tampered with until the end, so it can be used to obtain a score of the learned model by comparing the test targets with the model's predictions obtained from test data. As a default, the metric here adopted for prediction scoring is $R^2$, defined as $1 - u/v$, where $u = \sum(y_{\text{true}} - y_{\text{pred}})^2$ and $v = \sum(y_{\text{true}} - \mu_{y_{\text{true}}})^2$.
@@ -672,7 +700,23 @@ b = y_{i} - \langle w,\Phi(x_{i})\rangle \text{.}
 \label{chcustsvr}
 Initially, the analyses performed for this thesis made use of the scikit-learn \cite{sklearn} implementation of the standard Support Vector Regression model. The estimator class \texttt{SVR}, taken from the scikit-learn module \texttt{svm}, was used in the pipeline presented in Section \ref{learnpipeline}. However, it soon became apparent that alternative models not present in the library had to be used, and so a custom SVR implementation was needed. To this end, the Gurobi optimizer \cite{gurobi} was chosen as a quadratic programming solver.
 
-Fig. XX illustrates a comparison between the scikit-learn standard SVR and the custom implementation when tested on randomly generated functions.
+Fig. \ref{custsvrfig} illustrates a comparison between the scikit-learn standard SVR and the custom implementation when tested on randomly generated functions.
+
+\begin{figure}[hp]
+	\begin{adjustwidth}{-1in}{-1in}
+  	\centering
+  	\begin{tabular}{cc}
+  		\includegraphics[width=0.58\textwidth]{figures/custsvrcomp1.pdf} & 
+  		\includegraphics[width=0.58\textwidth]{figures/custsvrcomp4.pdf} \\
+		\includegraphics[width=0.58\textwidth]{figures/custsvrcomp2.pdf} &
+		\includegraphics[width=0.58\textwidth]{figures/custsvrcomp5.pdf} \\
+		\includegraphics[width=0.58\textwidth]{figures/custsvrcomp3.pdf} &
+		\includegraphics[width=0.58\textwidth]{figures/custsvrcomp6.pdf} \\
+  	\end{tabular}
+  	\end{adjustwidth}
+  	\caption{Comparison between scikit-learn SVR and \texttt{customSVR} learnt functions on linear (left column) and nonlinear (right column) artificial data.}
+  	\label{custsvrfig}
+\end{figure}
 
 \section{The \texttt{customsvr} module}
 The custom estimator classes implemented for this thesis are collected in the \texttt{customsvr} python module. They can substitute the scikit-learn estimators in the learning pipeline without compatibilty problems.
