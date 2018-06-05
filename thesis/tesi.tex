@@ -10,6 +10,8 @@
 \usepackage{tesi}
 \usepackage[nottoc]{tocbibind}
 \usepackage{chngpage}
+\usepackage[labelfont=bf]{caption}
+\usepackage{multirow}
 
 \usepackage[utf8]{inputenc}
 
@@ -182,9 +184,13 @@ c(x,y,f(x)) = \vert y - f(x) \vert_{\varepsilon} = \begin{cases}
 Figure \ref{epstubefig} illustrates the region of $ \mathcal{X} \times \mathbb{R} $, called ``$ \varepsilon $-insensitive tube'', within which predictions are not penalized, while those laying outside are penalized linearly. This is different from the squared distance loss function used in standard least squares regression.
 
 \begin{figure}[h]
-  \centering
+  	\begin{adjustwidth}{-1in}{-1in}
+  	\centering
   	\includegraphics[width=0.5\textwidth]{figures/epstube.pdf}
-  \caption{$\varepsilon$-insensitive tube corresponding to an $\varepsilon$-insensitive loss function.}
+  	\qquad
+  	\includegraphics[width=0.5\textwidth]{figures/epsloss.pdf}
+  	\end{adjustwidth}
+  \caption{$\varepsilon$-insensitive tube (left) corresponding to an $\varepsilon$-insensitive loss function (right).}
   \label{epstubefig}
 \end{figure}
 
@@ -342,7 +348,7 @@ A check on the \textit{Age} value was meant to determine whether it was recorded
 \section{Exploratory analysis} \label{explanal}
 After the first checks necessary to assess data consistency, the dataset was further inspected using some exploratory analysis tools. The insights obtained with this techniques proved useful for subsequent tasks such as feature selection and normalization.
 \subsection*{Feature correlation}
-A correlation heatmap of the available features was used to highlight possible dependencies among them. In particular, Fig. \ref{corrheatmap} shows that the following groups of features exhibit a relevant correlation:
+A correlation heatmap of the available features was used to highlight possible dependencies among them. In particular, Fig.\ \ref{corrheatmap} shows that the following groups of features exhibit a relevant correlation:
 \begin{itemize}
 \item \textit{IP Gravity} and \textit{Vrig tric}: a subsequent test confirmed that the first feature is indeed a discretization of the second one;
 \item \textit{Dead} and \textit{MC} (Cardiac arrest death);
@@ -358,7 +364,7 @@ A correlation heatmap of the available features was used to highlight possible d
 \end{figure}
 
 \subsection*{Scatter plots with \textit{Survival time} and other features}
-\textit{Survival time} was plotted against all the other features. No obvious patterns were found, except for a slight correlation between \textit{Age} and \textit{Asx/ao}.
+\textit{Survival time} was plotted against all the other features as seen in Fig.\ \ref{jointplotsfig}. No obvious patterns were found, except for a slight correlation between \textit{Age} and \textit{Asx/ao}.
 
 \section{Handling missing data}
 The considered dataset, as is the case with most real world data, contains NA (Not Available) values that need to be handled in some way before being used as input for model training. The following policies were experimented with in order to deal with this problem:
@@ -368,6 +374,46 @@ The considered dataset, as is the case with most real world data, contains NA (N
 \item \textbf{Sampling from a normal distribution}. This technique assumes a normal distribution for the involved features, and replaces NAs with values drawn from an approximation of such distributions. It maintains the dataset's size and feature distributions, but introduces an element of randomness in the analysis. Before applying this technique it's important to verify the normality of the affected features using a tool such as a QQ-plot.
 %potential TODO \item \textbf{Using values predicted from a model (e.g., Linear Regression)}.
 \end{itemize}
+
+\begin{figure}[hp]
+  	\caption{Scatter plots of \texttt{dogs\_2006\_2016} features against \textit{Sruvival time}.}
+	\begin{adjustwidth}{-1.5in}{-1in}
+  	\centering
+  	\vspace{0.5cm}
+  	\label{jointplotsfig}
+  	\begin{tabular}{cc}
+  		\includegraphics[width=0.5\textwidth]{figures/jointplot1.pdf} & 
+  		\includegraphics[width=0.5\textwidth]{figures/jointplot2.pdf} \\
+		\includegraphics[width=0.5\textwidth]{figures/jointplot3.pdf} &
+		\includegraphics[width=0.5\textwidth]{figures/jointplot7.pdf} \\
+		\includegraphics[width=0.5\textwidth]{figures/jointplot8.pdf} & 
+  		\includegraphics[width=0.5\textwidth]{figures/jointplot9.pdf} \\
+  	\end{tabular}
+  	\end{adjustwidth}
+\end{figure}
+\begin{figure}[hp]
+	\begin{adjustwidth}{-1.5in}{-1in}
+  	\centering
+  	\begin{tabular}{cc}
+		\includegraphics[width=0.5\textwidth]{figures/jointplot10.pdf} &
+		\includegraphics[width=0.5\textwidth]{figures/jointplot11.pdf} \\
+		\includegraphics[width=0.5\textwidth]{figures/jointplot12.pdf} &
+		\includegraphics[width=0.5\textwidth]{figures/jointplot13.pdf} \\
+		\includegraphics[width=0.5\textwidth]{figures/jointplot14.pdf} & 
+  		\includegraphics[width=0.5\textwidth]{figures/jointplot15.pdf} \\
+  	\end{tabular}
+  	\end{adjustwidth}
+\end{figure}
+\begin{figure}[hp]
+	\begin{adjustwidth}{-1.5in}{-1in}
+  	\centering
+  	\begin{tabular}{cc}
+		\includegraphics[width=0.5\textwidth]{figures/jointplot16.pdf} &
+		\includegraphics[width=0.5\textwidth]{figures/jointplot17.pdf} \\
+		\includegraphics[width=0.5\textwidth]{figures/jointplot18.pdf}
+  	\end{tabular}
+  	\end{adjustwidth}
+\end{figure}
 
 \section{Handling censored data} \label{handlcens}
 A crucial problem in survival analysis is that of data censoring: in this case the \textit{Survival time} feature is right-censored for observations for which the subject is registered as alive. This means that the reported survival time is just a lower bound, while the real time is unknown, either because the subject died after the last visit or because it's still alive.
@@ -425,7 +471,7 @@ The new feature \textit{Therapy to visit} can thus be introduced, computed as $ 
 \subsection*{Removing subsets of highly correlated features}
 As noticed in the original exploratory analysis, some features in the dataset are highly correlated with each other. Removing features having high correlation with other ones has the effect of reducing the dimensionality of the feature space, thus simplifying learning, without losing too much useful information.
 
-Groups of highly correlated features have been identified in Section \ref{explanal}, as Fig. \ref{corrheatmap} shows. Any combination of features in these groups would be suitable for removal. Two ways of doing this are to either remove \textit{IP Gravity}, \textit{FS \%}, \textit{ESVI}, \textit{Allo diast} and \textit{Allo sist}; or to remove \textit{IP Gravity}, \textit{FE \%}, \textit{EDVI}, \textit{ESVI} and \textit{Allo sist}. The resulting correlation heatmaps are shown in Figures \ref{featsubset1} and \ref{featsubset2}.
+Groups of highly correlated features have been identified in Section \ref{explanal}, as Fig.\ \ref{corrheatmap} shows. Any combination of features in these groups would be suitable for removal. Two ways of doing this are to either remove \textit{IP Gravity}, \textit{FS \%}, \textit{ESVI}, \textit{Allo diast} and \textit{Allo sist}; or to remove \textit{IP Gravity}, \textit{FE \%}, \textit{EDVI}, \textit{ESVI} and \textit{Allo sist}. The resulting correlation heatmaps are shown in Figures \ref{featsubset1} and \ref{featsubset2}.
 
 \begin{figure}[hp]
   \centering
@@ -483,7 +529,7 @@ A few workarounds were proposed in Section \ref{handlcens} to work with the stan
 A few modifications to the support vector machine model have been proposed specifically to work on unaltered censored datasets. What follows is an overview of a number of such models, also available in \cite{vanbelle11}.
 
 \section{SVCR}
-A simple alternative formulation of support vector regression, called SVCR \cite{shivaswamy07}, consists in relaxing the right-sided constraint in Eq.\ (\ref{smargprimal}) on censored data points. As shown in Fig. XX, this corresponds to changing the loss function so that, in the case of a censored observation, predictions landing on the right side of the center are not penalized. Furthermore, the model as given by \cite{vanbelle11} does not require an $\varepsilon$ parameter, setting the width of the $\varepsilon$-insensitive tube to zero.
+A simple alternative formulation of support vector regression, called SVCR \cite{shivaswamy07}, consists in relaxing the right-sided constraint in Eq.\ (\ref{smargprimal}) on censored data points. As shown in Fig.\ \ref{altlossfig}, this corresponds to changing the loss function so that, in the case of a censored observation, predictions of a magnitude greater than the recorded value are not penalized. Furthermore, the model as given by \cite{vanbelle11} does not require an $\varepsilon$ parameter, setting the width of the $\varepsilon$-insensitive tube to zero.
 
 For each data point $(x_{i}, y_{i}, \delta_{i})$, $\delta_{i} = 1$ if the observation is uncensored, while $\delta_{i} = 0$ if it is censored. The SVCR model can therefore be formulated as:
 \begin{equation} \label{svcrprimal}
@@ -536,14 +582,32 @@ do not become equalities for $\delta_{i} = 0$. They only do if some $\alpha_{i} 
 b = y_{i} - \langle w,\Phi(x_{i})\rangle \text{.}
 \end{equation}
 
+\begin{figure}[h]
+	\begin{adjustwidth}{-1.5in}{-1in}
+  	\centering
+  	\begin{tabular}{ccc}
+  		& (a) & (b) \\
+  		\fbox{$\delta_i = 0$} &
+  		\raisebox{-.5\height}{\includegraphics[width=0.5\textwidth]{figures/altloss2.pdf}} & 
+  		\raisebox{-.5\height}{\includegraphics[width=0.5\textwidth]{figures/altloss4.pdf}} \\
+  		\fbox{$\delta_i = 1$} &
+		\raisebox{-.5\height}{\includegraphics[width=0.5\textwidth]{figures/altloss1.pdf}} &
+		\raisebox{-.5\height}{\includegraphics[width=0.5\textwidth]{figures/altloss3.pdf}} \\
+  	\end{tabular}
+  	\end{adjustwidth}
+  	\caption{Loss functions as defined by SVCR (a) and SVRC (b).}
+  	\label{altlossfig}
+\end{figure}
+
 \section{SVRC}
-Another formulation of support vector regression for censored data is SVRC \cite{khan08}, which employs a more configurable $\varepsilon$-insensitive loss function (see Fig XX.). This model applies different penalties to predictions higher and lower than the target values, while also distinguishing between censored and uncensored observations. Different penalty parameters need to be specified for the resulting four possible cases:
+Another formulation of support vector regression for censored data is SVRC \cite{khan08}, which employs a more configurable $\varepsilon$-insensitive loss function (see Fig.\ \ref{altlossfig}). This model applies different penalties to predictions higher and lower than the target values, while also distinguishing between censored and uncensored observations. Different penalty parameters need to be specified for the resulting four possible cases:
 \begin{itemize}
 \item Penalty $C$ for uncensored observations with predicted value lower than the target value.
 \item Penalty $C^{*}$ for uncensored observations with predicted value higher than the target value, with $C^{*} > C$.
 \item Penalty $C_{c}$ for censored observations with predicted value lower than the target value.
 \item Penalty $C_{c}^{*}$ for censored observations with predicted value higher than the target value, with $C_{c}^{*} < C_{c}$.
 \end{itemize}
+
 Moreover, the two $\varepsilon$-insensitive tubes for uncensored and censored observations have different widths given by $\varepsilon$ and $\varepsilon_{c}$.
 
 Even though the flexibile nature of SVRC makes it potentially well performing, the high number of hyperparameters needed for such adjustability constitutes its main drawback. The model can be formulated as follows:
@@ -700,10 +764,10 @@ b = y_{i} - \langle w,\Phi(x_{i})\rangle \text{.}
 \label{chcustsvr}
 Initially, the analyses performed for this thesis made use of the scikit-learn \cite{sklearn} implementation of the standard Support Vector Regression model. The estimator class \texttt{SVR}, taken from the scikit-learn module \texttt{svm}, was used in the pipeline presented in Section \ref{learnpipeline}. However, it soon became apparent that alternative models not present in the library had to be used, and so a custom SVR implementation was needed. To this end, the Gurobi optimizer \cite{gurobi} was chosen as a quadratic programming solver.
 
-Fig. \ref{custsvrfig} illustrates a comparison between the scikit-learn standard SVR and the custom implementation when tested on randomly generated functions.
+Fig.\ \ref{custsvrfig} illustrates a comparison between the scikit-learn standard SVR and the custom implementation when tested on randomly generated functions.
 
 \begin{figure}[hp]
-	\begin{adjustwidth}{-1in}{-1in}
+	\begin{adjustwidth}{-1.5in}{-1in}
   	\centering
   	\begin{tabular}{cc}
   		\includegraphics[width=0.58\textwidth]{figures/custsvrcomp1.pdf} & 
@@ -714,7 +778,7 @@ Fig. \ref{custsvrfig} illustrates a comparison between the scikit-learn standard
 		\includegraphics[width=0.58\textwidth]{figures/custsvrcomp6.pdf} \\
   	\end{tabular}
   	\end{adjustwidth}
-  	\caption{Comparison between scikit-learn SVR and \texttt{customSVR} learnt functions on linear (left column) and nonlinear (right column) artificial data.}
+  	\caption{Comparison between scikit-learn SVR and \texttt{customSVR} learnt functions on linear (left column) and nonlinear (right column) noisy artificial data.}
   	\label{custsvrfig}
 \end{figure}
 
@@ -791,15 +855,32 @@ As a note, the \texttt{quicksum} function is a more efficient alternative to the
 After the architecture described in previous Chapters had been set set up, many experiments were performed on the \texttt{dogs\_2006\_2016} dataset involving numerous combinations of models and training pipeline settings. This Chapter is about the results of these experiments and their discussion.
 
 \section{First SVR experiments}
-Initially, the tests performed on the dataset all involved the standard SVR model with different training pipeline configurations, scored with the $R^2$ metric. The changing settings include the use of different feature subsets, the ``drop'' and ``max'' censoring policies, the use of scalers and outlier elimination. Model selection was performed by 5 runs of repeated holdout, with a test set of 10 points and a validation set of 15 points.
+Initially, the tests performed on the dataset all involved the standard SVR model with different training pipeline configurations, scored with the $R^2$ metric. The changing settings include the use of different feature subsets, the ``drop'' and ``max'' censoring policies, the use of scalers and outlier elimination. Model selection was performed by 5 runs of repeated holdout, with a test set of 10 points and a validation set of 15 points. Each test was repeated 5 times.
 
-The results, shown in Table X, suggest a generally poor performance. $R^2$ scores hovering around zero are an indication of a model with prediction power not better than simply taking the mean of the target values, as it means that $\sum(y_{\text{true}} - y_{\text{pred}})^2 \simeq \sum(y_{\text{true}} - \mu_{y_{\text{true}}})^2$. When the score becomes negative, it means that the model performs even worse than this baseline.
+The results, shown in Table \ref{resultstab:1}, suggest a generally poor performance. $R^2$ scores hovering around zero are an indication of a model with prediction power not better than simply taking the mean of the target values, as it means that $\sum(y_{\text{true}} - y_{\text{pred}})^2 \simeq \sum(y_{\text{true}} - \mu_{y_{\text{true}}})^2$. When the score becomes negative, it means that the model performs even worse than this baseline. Anyhow, the best set of settings was shown to be the combination of the random generation of NA values, the substitution of censored survival times for the maximum value, and the use of \texttt{StandardScaler}.
 
 It becomes clear from this situation that the standard SVR model suffers from severe limitations when dealing with censored data, expecially while working on such a small and noisy dataset. This conclusion is what led, in the context of this thesis, to the search for alternative models able to deal with censoring.
 
+\begin{center}
+ \begin{tabular}{ |p{7cm}|c|c|c|c| }
+\hline
+\multicolumn{1}{|c|}{\multirow{2}{*}{Pipeline settings}} & \multicolumn{2}{|c|}{$R^2$} & \multicolumn{2}{|c|}{c-index} \\ \cline{2-5}
+& mean & sd & mean & sd \\ \hline
+Drop NA, max censoring, StandardScaler & -1.0915 & 0.7466 & 0.6440 & 0.1266 \\ \hline
+Mean NA, max censoring, StandardScaler & -1.6657 & 2.0754 & 0.6421 & 0.1193 \\ \hline
+Normal generated NA, drop censoring, StandardScaler & -3.2109 & 3.5736 & 0.6133 & 0.1739 \\ \hline
+Normal generated NA, max censoring, StandardScaler & -0.7714 & 0.9389 & 0.7005 & 0.0934 \\ \hline
+Normal generated NA, max censoring, QuantileTranformer scaler & -0.7953 & 0.6020 & 0.5413 & 0.0680 \\ \hline
+Normal generated NA, max censoring, StandardScaler, LOF outlier detector & -10.7221 & 12.3847 & 0.4537 & 0.1413 \\ \hline
+Removing IP Gravity, FE \%, EDVI, ESVI, Allo sist. Normal NA, max censoring, StandardScaler & -3.2217 & 6.0365 & 0.5750 & 0.0842 \\ \hline
+Removing IP Gravity, FS \%, ESVI, Allo diast e Allo sist. Normal NA, max censoring, StandardScaler & -1.4231 & 1.7689 & 0.5780 & 0.1549 \\ \hline
+\end{tabular}
+\captionof{table}{Experiment results on standard SVR model with repeated holdout, maximizing $R^2$ score.}\label{resultstab:1}
+\end{center} 
+
 \section{Alternative models experiments}
 
-With the introduction of alternative models specialized in censored data, a new batch of experiments has been conducted in order to compare their performance. Since not all of these models produce results that can be considered meaningful as standalone survival times, the preferred scoring metric chosen for the comparisons was the \textit{c-index}. Model selection has been performed by 5 runs of repeated holdout, with a test set of 10 points and a validation set of 15 points.
+With the introduction of alternative models specialized in censored data, a new batch of experiments has been conducted in order to compare their performance. Since not all of these models produce results that can be considered meaningful as standalone survival times, the preferred scoring metric chosen for the comparisons was the \textit{c-index}. Model selection has been performed by 5 runs of repeated holdout, with a test set of 10 points and a validation set of 15 points. Each test was repeated 5 times.
 
 The results, shown in Table Y, indicate a good ranking performance (by c-index), while prediction performance (by $R^2$) remains poor. Even though the c-index score of the standard SVR model is already decent, the introduction of censoring-specific loss functions with SVCR and SVRC shows slightly increased performance. On the other hand, both RankSVMC (in its simplified version) and Model 1 perform consistently worse than any other model. Finally Model 2, with its combination of all approaches, appears to be the best scoring overall.
 

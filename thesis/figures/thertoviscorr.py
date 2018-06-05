@@ -12,7 +12,7 @@ import seaborn as sns
 sns.set()
 #sns.set_context('paper')
 
-dogs = load_df_dogs_2016(dropColumns=dropNonNumeric+dropDates+dropIrrelevant+dropDead, NApolicy='normal', censoringPolicy='max', newFeats=True)
+dogs = load_df_dogs_2016(dropColumns=dropNonNumeric+dropDates+dropIrrelevant+dropDead, NApolicy='normal', newFeats=True)
 
 plt.title("Correlation heatmap")
 g2 = sns.heatmap(dogs.corr(), cmap="YlGnBu")
