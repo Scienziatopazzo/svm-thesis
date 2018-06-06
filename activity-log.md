@@ -1,5 +1,8 @@
 # SVMRegression - Research Activity Log
 
+## 6th June 2018
+* Finished results tables and modified *Results and Discussion* and *Conclusions*.
+
 ## 5th June 2018
 * Worked on figures and results tables.
 

@@ -12,6 +12,7 @@
 \usepackage{chngpage}
 \usepackage[labelfont=bf]{caption}
 \usepackage{multirow}
+\usepackage{array}
 
 \usepackage[utf8]{inputenc}
 
@@ -862,7 +863,7 @@ The results, shown in Table \ref{resultstab:1}, suggest a generally poor perform
 It becomes clear from this situation that the standard SVR model suffers from severe limitations when dealing with censored data, expecially while working on such a small and noisy dataset. This conclusion is what led, in the context of this thesis, to the search for alternative models able to deal with censoring.
 
 \begin{center}
- \begin{tabular}{ |p{7cm}|c|c|c|c| }
+ \begin{tabular}{ |m{7cm}|c|c|c|c| }
 \hline
 \multicolumn{1}{|c|}{\multirow{2}{*}{Pipeline settings}} & \multicolumn{2}{|c|}{$R^2$} & \multicolumn{2}{|c|}{c-index} \\ \cline{2-5}
 & mean & sd & mean & sd \\ \hline
@@ -872,8 +873,8 @@ Normal generated NA, drop censoring, StandardScaler & -3.2109 & 3.5736 & 0.6133 
 Normal generated NA, max censoring, StandardScaler & -0.7714 & 0.9389 & 0.7005 & 0.0934 \\ \hline
 Normal generated NA, max censoring, QuantileTranformer scaler & -0.7953 & 0.6020 & 0.5413 & 0.0680 \\ \hline
 Normal generated NA, max censoring, StandardScaler, LOF outlier detector & -10.7221 & 12.3847 & 0.4537 & 0.1413 \\ \hline
-Removing IP Gravity, FE \%, EDVI, ESVI, Allo sist. Normal NA, max censoring, StandardScaler & -3.2217 & 6.0365 & 0.5750 & 0.0842 \\ \hline
-Removing IP Gravity, FS \%, ESVI, Allo diast e Allo sist. Normal NA, max censoring, StandardScaler & -1.4231 & 1.7689 & 0.5780 & 0.1549 \\ \hline
+Removing \textit{IP Gravity}, \textit{FE \%}, \textit{EDVI}, \textit{ESVI}, \textit{Allo sist}. Normal NA, max censoring, StandardScaler & -3.2217 & 6.0365 & 0.5750 & 0.0842 \\ \hline
+Removing \textit{IP Gravity}, \textit{FS \%}, \textit{ESVI}, \textit{Allo diast} e \textit{Allo sist}. Normal NA, max censoring, StandardScaler & -1.4231 & 1.7689 & 0.5780 & 0.1549 \\ \hline
 \end{tabular}
 \captionof{table}{Experiment results on standard SVR model with repeated holdout, maximizing $R^2$ score.}\label{resultstab:1}
 \end{center} 
@@ -882,9 +883,24 @@ Removing IP Gravity, FS \%, ESVI, Allo diast e Allo sist. Normal NA, max censori
 
 With the introduction of alternative models specialized in censored data, a new batch of experiments has been conducted in order to compare their performance. Since not all of these models produce results that can be considered meaningful as standalone survival times, the preferred scoring metric chosen for the comparisons was the \textit{c-index}. Model selection has been performed by 5 runs of repeated holdout, with a test set of 10 points and a validation set of 15 points. Each test was repeated 5 times.
 
-The results, shown in Table Y, indicate a good ranking performance (by c-index), while prediction performance (by $R^2$) remains poor. Even though the c-index score of the standard SVR model is already decent, the introduction of censoring-specific loss functions with SVCR and SVRC shows slightly increased performance. On the other hand, both RankSVMC (in its simplified version) and Model 1 perform consistently worse than any other model. Finally Model 2, with its combination of all approaches, appears to be the best scoring overall.
+The results, shown in Table \ref{resultstab:2}, indicate a good ranking performance (by c-index), while prediction performance (by $R^2$) remains poor. Even though the c-index score of the standard SVR model is already decent, the introduction of a censoring-specific loss function with SVCR shows increased performance. On the other hand, SVRC, RankSVMC and Model 1 seem to not bring any significant improvement to the standard model on this dataset. Finally Model 2, with its combination of all approaches, appears to suffer increased variance in performance while not faring better than the alternatives.
 
-After these trials, the general conclusion is that the dataset in question is not of sufficient size and quality for precise predictions of survival times to be made. Instead, one can perform a ranking of survival times in order to establish risk groups. When considering this approach for performance evaluation, Model 2 from \textit{Van Belle et al.} \cite{vanbelle11} has been shown to perform very well on \texttt{dogs\_2006\_2016}, with a c-index score similar to those obtained in the original paper on notable public datasets. It therefore appears that, while purely ranking-based methods do not perform well, the best model is that which makes use of both regression and ranking constraints.
+\begin{center}
+ \begin{tabular}{ |m{7cm}|c|c|c|c| }
+\hline
+\multirow{2}{=}{SVR model with normal generated NA and StandardScaler} & \multicolumn{2}{|c|}{c-index} & \multicolumn{2}{|c|}{$R^2$} \\ \cline{2-5}
+& mean & sd & mean & sd \\ \hline
+Standard SVR with max censoring & 0.5747 & 0.1593 & -1.8245 & 1.2600 \\ \hline
+SVCR & 0.6956 & 0.0699 & -1.8485 & 2.1166 \\ \hline
+SVRC & 0.5368 & 0.1162 & -1.3478 & 1.5259 \\ \hline
+RankSVMC (simplified) & 0.5855 & 0.1478 & - & - \\ \hline
+Van Belle Model 1 & 0.5329 & 0.1100 & - & - \\ \hline
+Van Belle Model 2 & 0.5233 & 0.2321 & -0.5028 & 0.6052 \\ \hline
+\end{tabular}
+\captionof{table}{Experiment results on alternative SVR models with repeated holdout, maximizing c-index score.}\label{resultstab:2}
+\end{center} 
+
+After these trials, the general conclusion is that the dataset in question is not of sufficient size and quality for precise predictions of survival times to be made. Instead, one can perform a ranking of survival times in order to establish risk groups. When considering this approach for performance evaluation, SVCR \cite{shivaswamy07} has been shown to perform very well on \texttt{dogs\_2006\_2016}, with a c-index score similar to those obtained in the original paper on notable public datasets. It therefore appears that, while the introduction of ranking-based methods does not increase performance, the best model is that which introduces a sharply different loss function for censored targets.
 
 \chapter*{Conclusions}
 \label{concl}
@@ -895,7 +911,7 @@ The thesis opened with an overview of Support Vector Machine Regression in the c
 
 However, the ``standard'' Support Vector Regression approach soon proved insufficient as it was not designed to work with censored data, which is very common in survival analysis settings. For this reason, a series of alternative SVR models were explored and implemented as part of a custom SVR python package. The different proposals included modified loss functions for censored examples, the formulation of survival analysis as a ranking problem, and the combination of regression and ranking approaches.
 
-In conclusion, while precise survival time predictions weren't deemed attainable with the present data, the use of SVR models for ranking observations and establishing risk groups was a success. The best performing model was identified as that which optimizes for both prediction and ranking.
+In conclusion, while precise survival time predictions weren't deemed attainable with the present data, the use of SVR models for ranking observations and establishing risk groups was a success. The best performing model was identified as that which introduces a modified loss function for censored targets.
 
 %
 %			BIBLIOGRAPHY
