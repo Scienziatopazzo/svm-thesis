@@ -13,6 +13,8 @@
 \usepackage[labelfont=bf]{caption}
 \usepackage{multirow}
 \usepackage{array}
+\usepackage{subfloat}
+\usepackage{algorithm}
 
 \usepackage[utf8]{inputenc}
 
@@ -43,7 +45,8 @@
   stringstyle=\color{mauve},
   breaklines=true,
   breakatwhitespace=true,
-  tabsize=3
+  tabsize=3,
+  frame=none
 }
 
 \begin{document}
@@ -103,21 +106,11 @@ I am grateful to my partner, my family and friends for their unwavering support.
 \addcontentsline{toc}{chapter}{Introduction}
 The subject of this thesis is the use of machine learning techniques, specifically Support Vector Machine Regression, in the analysis and prediction of survival times. By interpreting survival time as a variable dependent on a group of features, the task becomes that of estimating a function while minimizing risk. Support Vector Regression translates this into an optimization problem.
 
-The techniques are applied to a dataset of dogs' veterinary records, with the goal of modeling survival time from the details of medical visits. To do this, the dataset needs to be first processed accordingly by checking its consistency, handling any missing data, and transforming/selecting its features. Moreover, the learning models employed present hyperparameters that need to be tuned in what is called model selection, with techniques such as holdout or cross-validation.
+The techniques are applied to a dataset of dogs' veterinary records, with the goal of modeling survival time from the details of medical visits. To do this, the dataset needs to be first processed accordingly by checking its consistency, handling any missing data, and transforming/selecting its features. Moreover, the employed learning models present hyperparameters that need to be tuned in what is called model selection, with techniques such as holdout or cross-validation.
 
-As with most similar datasets, the right-censoring of survival times cannot be dealt with correctly by using a ``standard'' SVR model. Thus, a few alternative models have to be taken in consideration. These include regression models with modified constraints for censored inputs and re-formulations of survival analysis as a ranking problem. For practical purposes, this work includes the implementation of a custom SVR python module.
+As with most similar datasets, the right-censoring of survival times cannot be dealt with correctly by using a ``standard'' SVR model. Thus, a few alternative models have to be taken in consideration. These include regression models with modified constraints for censored inputs and re-formulations of survival analysis as a ranking problem. For practical purposes, this work includes the implementation of a custom SVR python module supporting censored data.
 
-The thesis begins in Chapter \ref{chsvm} with an overview of function estimation and risk minimization, followed by a description of support vector machine regression for both the linear and the nonlinear case.
-
-In Chapter \ref{chprepr} the veterinary dataset analyzed in this thesis is first presented, then explored after a number of preprocessing steps, performed to guarantee data consistency and to deal with problems such as missing or censored values.
-
-Chapter \ref{chmodsel} is about model selection, achieved by tuning the hyperparameters of the support vector regression algorithm. Feature engineering is also considered as a way of obtaining a better performing model.
-
-In Chapter \ref{chaltsvr} a number of alternative SVR models are described and derived as optimization problems, to be solved by quadratic programming on their Lagrangian dual.
-
-Chapter \ref{chcustsvr} details the implementation of a custom SVR python module.
-
-Finally, Chapter \ref{chres} is about the results of the experiments conducted by applying the different techniques on the dataset with various combinations of settings.
+The thesis begins in Chapter \ref{chsvm} with an overview of function estimation and risk minimization, followed by a description of support vector machine regression for both the linear and the nonlinear case. In Chapter \ref{chprepr} the veterinary dataset analyzed in this thesis is first presented, then explored after a number of preprocessing steps, performed to guarantee data consistency and to deal with problems such as missing or censored values. Chapter \ref{chmodsel} is about model selection, achieved by tuning the hyperparameters of the support vector regression algorithm. Feature engineering is also considered as a way of obtaining a better performing model. In Chapter \ref{chaltsvr} a number of alternative SVR models are described and derived as optimization problems, to be solved by quadratic programming on their Lagrangian dual. Chapter \ref{chcustsvr} details the implementation of a custom SVR python module. Finally, Chapter \ref{chres} is about the results of the experiments conducted by applying the different techniques on the dataset with various combinations of settings.
 \newpage
 
 A wide range of technologies has been used for the purpose of this work. The code for the thesis was written in python, using libraries numpy \cite{numpy}, pandas \cite{pandas} and scikit-learn \cite{sklearn}. The dataset checks, explorations and the experiments were conducted with jupyter notebooks \cite{jupyter}. The figures were rendered with python libraries matplotlib \cite{matplotlib} and seaborn. The custom SVR implementation was made using the Gurobi optimizer \cite{gurobi}. \LaTeX\ was used for the writing of the thesis, and git for version control.
@@ -127,7 +120,7 @@ A wide range of technologies has been used for the purpose of this work. The cod
 Survival analysis can be modeled as a regression problem, survival time being a continuous variable dependent on a certain number of covariates. This chapter begins with an introduction to function estimation in general, followed by a description of support vector machine regression, a machine learning technique used to solve a particular formulation of linear and non-linear regression problems by framing them as optimization problems. A tutorial on the basics of support vector machines is available in \cite{svmtutorial}, while a description of their use for regression can be found in \cite{svregtutorial}.
 
 \section{Function estimation and risk minimization}
-Let an input space $ \mathcal{X} $ and a set of training data $ \mathbf{X} = \lbrace (x_{1},y_{1}),\ldots,(x_{\ell},y_{\ell})\rbrace \subset \mathcal{X} \times \mathbb{R} $. Assuming it has been drawn (independent and identically distributed) from a probability distribution $ P(x,y) $, the goal of function estimation is to find the function $ f $ minimizing the expectation of test error, also known as risk functional \cite{vapnik82}
+Let an input space $ \mathcal{X} $ and a set of training data $ \mathbf{X} = \lbrace (x_{1},y_{1}),\ldots,(x_{\ell},y_{\ell})\rbrace \subset \mathcal{X} \times \mathbb{R} $. Assuming that $\mathbf{X}$ has been drawn (independent and identically distributed) from a probability distribution $ P(x,y) $, the goal of function estimation is to find the function $ f $ minimizing the expectation of test error, also known as risk functional \cite{vapnik82}
 \begin{equation} \label{riskfun}
 R[f] = \int c(x,y,f(x))dP(x,y) \text{,}
 \end{equation}
@@ -141,7 +134,7 @@ Different bounds for $ R[f] $ based on $ R_{\text{emp}}[f] $ have been shown to 
 \begin{equation} \label{vapnikbound}
 R[f] \leq R_{\text{emp}}[f] + \sqrt{\dfrac{h(\log (2\ell /h) + 1) - \log (\eta /4)}{\ell}} \text{,}
 \end{equation}
-valid with a probability of $ 1 - \eta $, with $ \eta $ such that $ 0 \leq \eta \leq 1 $. The parameter $ h $ is called the \textit{VC dimension} of the function class $ H $ from which $ f $ is chosen, and it is a measure of the \textit{``capacity''} of the function class. A function class with high capacity can be comprised of more complicated and varied functions, which can represent complex phenomena with higher accuracy. When the capacity of $ H $ is very high, the VC dimension increases, leading in this example to a higher upper bound on the risk (in the reasonable case of $ h \leq \ell $), and in practice to a propensity towards overfitting and bad performance.
+valid with a probability of $ 1 - \eta $, with $ \eta $ such that $ 0 \leq \eta \leq 1 $. The parameter $ h $ is called the \textit{VC dimension} of the function class $ H $ from which $ f $ is chosen, and it is a measure of the \textit{``capacity''} of the function class. A function class with high capacity contains several complicated and varied functions, which can represent complex phenomena with higher accuracy. When the capacity of $ H $ is very high, the VC dimension increases, leading in this example to a higher upper bound on the risk (in the reasonable case of $ h \leq \ell $), and in practice to a propensity towards overfitting and bad performance.
 
 One solution to this problem, useful even outside of classification, is to add a capacity control term to the empirical risk, so that $ H $ is artificially kept small. In the case of support vector machines, the function $ f $ is determined basing on a vector of weights $ w $. By using $ \| w \|^2 $ as the capacity control term added to the expression being minimized, the number of different obtainable functions is reduced. This leads to the regularized risk functional \cite{tikhonov77}
 \begin{equation} \label{regriskfun}
@@ -152,8 +145,9 @@ where $ \lambda > 0 $ is a regularization constant.
 \section{Linear support vector regression}
 Given training data $ \mathbf{X} \subset \mathcal{X} \times \mathbb{R} $, the goal of hard-margin support vector regression is to find the \textit{``flattest''} function $ f $ such that, for every $ (x_{i},y_{i}) \in \mathbf{X} $, $ f(x_{i}) $ has at most $ \varepsilon $ deviation from the actual target $ y_{i} $ \cite{vapnik95}. In the linear case, $ f $ takes the form:
 \begin{equation} \label{linfun}
-f(x) = \langle w,x \rangle + b \ \text{with} \ w \in \mathcal{X}, b \in \mathbb{R} \text{.}
+f(x) = \langle w,x \rangle + b \ \text{with} \ w \in \mathcal{X}, b \in \mathbb{R} \text{,}
 \end{equation}
+where $\langle w,x \rangle$ denotes the dot product in $\mathcal{X}$.
 In order to control function class capacity, $ \| w \|^2 $ is minimized, and in this sense the flattest function is obtained. This can be written as a convex optimization problem:
 \begin{equation} \label{hmargprimal}
 \begin{split}
@@ -231,7 +225,7 @@ f(x) = \sum_{i=1}^{\ell}(\alpha_{i}-\alpha_{i}^{*})\langle x_{i},x\rangle + b \t
 \end{equation}
 Each point $ x_{i} $ for which $ (\alpha_{i}-\alpha_{i}^{*}) \neq 0 $ is called a \textit{support vector}, and only these points are needed for a sparse representation of $ f $.  Because of this, the complexity of $ f $ only depends on the number of support vectors, and not on the dimensionality of $ \mathcal{X} $.
 
-The last issue is that of computing $b$, which can be done using the Karush-Kuhn-Tucker (KKT) conditions \cite{karush39,kuhntucker51}. These state that at optimality the product between dual variables and the respective constraints has to vanish:
+The last issue is that of computing $b$, which can be done using the Karush-Kuhn-Tucker (KKT) conditions \cite{karush39,kuhntucker51}. These state that at optimality the product between the dual variables and the respective constraints has to vanish:
 \begin{equation} \label{kkt1}
 \begin{split}
 \alpha_{i}(\varepsilon + \xi_{i} - y_{i} + \langle w,x_{i}\rangle + b) = 0 \text{,}\\
@@ -277,9 +271,11 @@ w = \sum_{i=1}^{\ell}(\alpha_{i}-\alpha_{i}^{*})\Phi(x_{i}) \text{,}
 \begin{equation} \label{kernelfsvexp}
 f(x) = \sum_{i=1}^{\ell}(\alpha_{i}-\alpha_{i}^{*})k(x_{i},x) + b \text{,}
 \end{equation}
-with the difference from the linear case being that $ w $ is no longer computed explicitly, while $ f $ only needs its support vectors $ x_{i} $ in their original low-dimensional form to be computed.
-
-An example of an ammissible kernel is the polynomial kernel
+with the difference from the linear case being that $ w $ is no longer computed explicitly, while $ f $ only needs its support vectors $ x_{i} $ in their original low-dimensional form to be computed. As for $b$, if some $\alpha_{j}^{(*)} \in (0,C)$, then
+\begin{equation} \label{compb3}
+b = - \varepsilon + y_{j} - \sum_{i=1}^{\ell}(\alpha_{i}-\alpha_{i}^{*})k(x_{i},x_{j}) \text{.}
+\end{equation}
+An example of an admissible kernel is the polynomial kernel
 \begin{equation} \label{polykernel}
 k(x_{i},x_{j}) = (\gamma\langle x_{i},x_{j} \rangle + c)^{d} \text{,}
 \end{equation}
@@ -296,7 +292,7 @@ with $ \gamma > 0 $, which corresponds to the feature spaces $ \mathcal{F} $ of 
 The real world application of support vector regression explored in this thesis consists in the analysis of survival time on a veterinary dataset. Before any meaningful analysis can be carried out, it's important to apply a number of checks and alterations to the raw dataset, so that it becomes suitable for processing. This kind of work, called \textit{preprocessing}, is paramount to successful analysis of real world data. Following these procedures, an initial exploration of the dataset can be made.
 
 \section{Dataset specifics}
-The dataset, provided as a \texttt{.xlsx} file without formulas, is composed of a collection of dogs' veterinary records, separated in 3 sheets: \textit{2006-2016} data $ (161 \text{ rows} \times 30 \text{ columns}) $, \textit{2001-2005} data $ (69 \text{ rows} \times 30 \text{ columns}) $, and a \textit{legend}. Both data sheets have 30 columns, corresponding to the features enumerated in the legend, but only the sheet from the \textit{2006-2016} period actually uses all of them. Therefore, only the first sheet has been deemed fit for analysis, hereafter referred to as the \texttt{dogs\_2006\_2016} dataset, with a shape of $ (161\; \text{data points} \times 30\; \text{features}) $.
+The dataset, provided as a \texttt{.xlsx} file without formulas, is composed of a collection of dogs' veterinary records, separated in 3 sheets: \textit{2006-2016} data $ (161 \text{ rows} \times 30 \text{ columns}) $, \textit{2001-2005} data $ (69 \text{ rows} \times 30 \text{ columns}) $, and a \textit{legend}. Both data sheets have 30 columns, corresponding to the features enumerated in the legend, but only the sheet from the \textit{2006-2016} period actually uses all of them. Therefore, only the first sheet has been deemed fit for analysis, hereafter referred to as the \texttt{dogs\_2006\_2016} dataset, with a shape of $ 161\; \text{data points} \times 30\; \text{features} $.
 
 \section{Feature legend}
 Here is the list of all features:
@@ -349,7 +345,7 @@ A check on the \textit{Age} value was meant to determine whether it was recorded
 \section{Exploratory analysis} \label{explanal}
 After the first checks necessary to assess data consistency, the dataset was further inspected using some exploratory analysis tools. The insights obtained with this techniques proved useful for subsequent tasks such as feature selection and normalization.
 \subsection*{Feature correlation}
-A correlation heatmap of the available features was used to highlight possible dependencies among them. In particular, Fig.\ \ref{corrheatmap} shows that the following groups of features exhibit a relevant correlation:
+A correlation heatmap of the available features was used to highlight possible dependencies among them. In particular, Figure \ref{corrheatmap} shows that the following groups of features exhibit a relevant correlation:
 \begin{itemize}
 \item \textit{IP Gravity} and \textit{Vrig tric}: a subsequent test confirmed that the first feature is indeed a discretization of the second one;
 \item \textit{Dead} and \textit{MC} (Cardiac arrest death);
@@ -365,23 +361,16 @@ A correlation heatmap of the available features was used to highlight possible d
 \end{figure}
 
 \subsection*{Scatter plots with \textit{Survival time} and other features}
-\textit{Survival time} was plotted against all the other features as seen in Fig.\ \ref{jointplotsfig}. No obvious patterns were found, except for a slight correlation between \textit{Age} and \textit{Asx/ao}.
+\textit{Survival time} was plotted against all the other features as seen in Figures \ref{jointplotsfig:a} to \ref{jointplotsfig:c}. Each plot includes: the Pearson correlation coefficient (pearsonr) between the feature and \textit{Survival time} computed as $\text{cov}(X,Y) / \sigma_{X}\sigma_{Y}$, the p-value associated with accepting the hypothesis of such correlation, a linear regression estimate of the relationship between features with error bands, and on the axes, the histograms and densiy estimates of the features.
 
-\section{Handling missing data}
-The considered dataset, as is the case with most real world data, contains NA (Not Available) values that need to be handled in some way before being used as input for model training. The following policies were experimented with in order to deal with this problem:
-\begin{itemize}
-\item \textbf{Dropping NA values}. This procedure consists in simply deleting all data points that include NA values in any feature field. It does not introduce potentially spurious information, but effectively reduces the dataset's size.
-\item \textbf{Using the mean value}. This procedure consists in filling any NA value with the mean value of all data points for the corresponding feature. It maintains the dataset's size but it might alter the distributions of features, especially when the number of NA values is high.
-\item \textbf{Sampling from a normal distribution}. This technique assumes a normal distribution for the involved features, and replaces NAs with values drawn from an approximation of such distributions. It maintains the dataset's size and feature distributions, but introduces an element of randomness in the analysis. Before applying this technique it's important to verify the normality of the affected features using a tool such as a QQ-plot.
-%potential TODO \item \textbf{Using values predicted from a model (e.g., Linear Regression)}.
-\end{itemize}
+No obvious patterns were found, except for a slight correlation between \textit{Age} and \textit{Asx/ao}.
 
+\begin{subfigures}
 \begin{figure}[hp]
-  	\caption{Scatter plots of \texttt{dogs\_2006\_2016} features against \textit{Sruvival time}.}
+  	\caption{Scatter plots of relevant \texttt{dogs\_2006\_2016} features (1 to 6) against \textit{Survival time}.}
+  	\label{jointplotsfig:a}
 	\begin{adjustwidth}{-1.5in}{-1in}
   	\centering
-  	\vspace{0.5cm}
-  	\label{jointplotsfig}
   	\begin{tabular}{cc}
   		\includegraphics[width=0.5\textwidth]{figures/jointplot1.pdf} & 
   		\includegraphics[width=0.5\textwidth]{figures/jointplot2.pdf} \\
@@ -393,6 +382,8 @@ The considered dataset, as is the case with most real world data, contains NA (N
   	\end{adjustwidth}
 \end{figure}
 \begin{figure}[hp]
+	\caption{Scatter plots of relevant \texttt{dogs\_2006\_2016} features (7 to 12) against \textit{Survival time}.}
+  	\label{jointplotsfig:b}
 	\begin{adjustwidth}{-1.5in}{-1in}
   	\centering
   	\begin{tabular}{cc}
@@ -406,6 +397,8 @@ The considered dataset, as is the case with most real world data, contains NA (N
   	\end{adjustwidth}
 \end{figure}
 \begin{figure}[hp]
+	\caption{Scatter plots of relevant \texttt{dogs\_2006\_2016} features (13 to 15) against \textit{Survival time}.}
+  	\label{jointplotsfig:c}
 	\begin{adjustwidth}{-1.5in}{-1in}
   	\centering
   	\begin{tabular}{cc}
@@ -415,6 +408,17 @@ The considered dataset, as is the case with most real world data, contains NA (N
   	\end{tabular}
   	\end{adjustwidth}
 \end{figure}
+\end{subfigures}
+
+\section{Handling missing data}
+The considered dataset, as is the case with most real world data, contains NA (Not Available) values that need to be handled in some way before being used as input for model training. The following policies were experimented with in order to deal with this problem:
+\begin{itemize}
+\item \textbf{Dropping NA values}. This procedure consists in simply deleting all data points that include NA values in any feature field. It does not introduce potentially spurious information, but effectively reduces the dataset's size.
+\item \textbf{Using the mean value}. This procedure consists in filling any NA value with the mean value of all data points for the corresponding feature. It maintains the dataset's size but it might alter the distributions of features, especially when the number of NA values is high.
+\item \textbf{Sampling from a normal distribution}. This technique assumes a normal distribution for the involved features, and replaces NAs with values drawn from an approximation of such distributions. It maintains the dataset's size and feature distributions, but introduces an element of randomness in the analysis. Before applying this technique it's important to verify the normality of the affected features using a tool such as a QQ-plot.
+%potential TODO \item \textbf{Using values predicted from a model (e.g., Linear Regression)}.
+\end{itemize}
+
 
 \section{Handling censored data} \label{handlcens}
 A crucial problem in survival analysis is that of data censoring: in this case the \textit{Survival time} feature is right-censored for observations for which the subject is registered as alive. This means that the reported survival time is just a lower bound, while the real time is unknown, either because the subject died after the last visit or because it's still alive.
@@ -432,7 +436,7 @@ Firstly, even after preprocessing the dataset, the features have to be scaled so
 
 But most importantly, models have to be scored and selected, as algorithms such as those based on support vectors depend on a number of hyperparameters that cannot be determined a priori. Common techniques for model selection are holdout and K-fold cross-validation.
 
-All these steps are part of a learning pipeline, which has been implemented for this thesis with the use of python libraries numpy \cite{numpy}, pandas \cite{pandas}, scikit-learn \cite{sklearn}, and of custom written functions.
+All these steps are part of a learning pipeline, which has been implemented for this thesis with the use of python libraries numpy \cite{numpy}, pandas \cite{pandas}, scikit-learn \cite{sklearn}, and of custom functions.
 
 \section{Feature transformation and filtering}
 \subsection*{Feature scalers}
@@ -453,18 +457,20 @@ There are many different ways of detecting outliers in multidimensional data. An
 \textit{Feature engineering} consists in selecting, creating and combining features before feeding them into a machine learning model.
 
 \subsection*{New feature: Therapy beginning to first visit time delta}
-The \textit{Therapy started} column in the dataset is not always equal to \textit{First visit}. In some cases, first visits were performed when a patient had already started treatment under different supervision. This time difference is however not expressed in any apposite feature, and is therefore lost after the removal of dates when cleaning the dataset from columns not useful for learning.
+The \textit{Therapy started} column in the dataset is not always equal to \textit{First visit}. In some cases, first visits were performed when a patient had already started treatment under different supervision. This time difference is however not expressed in any specific feature, and is therefore lost after the removal of dates when cleaning the dataset from columns not useful for learning.
 
 The new feature \textit{Therapy to visit} can thus be introduced, computed as $ \text{\emph{First visit}} - \text{\emph{Therapy started}} $ expressed in days. Its joint plot with \textit{Survival time} and the new correlation matrix can be seen in Figures \ref{thertovisjfig} and \ref{thertoviscfig}.
 
 \begin{figure}[hp]
   \centering
+  \vspace*{-1cm}
   	\includegraphics[width=0.7\textwidth]{figures/thertovisjoint.pdf}
   \caption{Joint plot of \textit{Therapy to visit} feature and \textit{Survival time}.}
   \label{thertovisjfig}
-  \vspace{0.7cm}
+  \vspace{0.5cm}
   \centering
   	\includegraphics[width=0.8\textwidth]{figures/thertoviscorr.pdf}
+  \vspace{-0.2cm}
   \caption{Correlation heatmap of \texttt{dogs\_2006\_2016} with the added \textit{Therapy to visit} feature.}
   \label{thertoviscfig}
 \end{figure}
@@ -472,22 +478,25 @@ The new feature \textit{Therapy to visit} can thus be introduced, computed as $ 
 \subsection*{Removing subsets of highly correlated features}
 As noticed in the original exploratory analysis, some features in the dataset are highly correlated with each other. Removing features having high correlation with other ones has the effect of reducing the dimensionality of the feature space, thus simplifying learning, without losing too much useful information.
 
-Groups of highly correlated features have been identified in Section \ref{explanal}, as Fig.\ \ref{corrheatmap} shows. Any combination of features in these groups would be suitable for removal. Two ways of doing this are to either remove \textit{IP Gravity}, \textit{FS \%}, \textit{ESVI}, \textit{Allo diast} and \textit{Allo sist}; or to remove \textit{IP Gravity}, \textit{FE \%}, \textit{EDVI}, \textit{ESVI} and \textit{Allo sist}. The resulting correlation heatmaps are shown in Figures \ref{featsubset1} and \ref{featsubset2}.
+Groups of highly correlated features have been identified in Section \ref{explanal}, as Figure \ref{corrheatmap} shows. Any combination of features in these groups would be suitable for removal. Two ways of doing this are to either remove \textit{IP Gravity}, \textit{FS \%}, \textit{ESVI}, \textit{Allo diast} and \textit{Allo sist}; or to remove \textit{IP Gravity}, \textit{FE \%}, \textit{EDVI}, \textit{ESVI} and \textit{Allo sist}. The resulting correlation heatmaps are shown in Figures \ref{featsubset1} and \ref{featsubset2}.
 
 \begin{figure}[hp]
   \centering
+  \vspace*{-0.8cm}
   	\includegraphics[width=0.8\textwidth]{figures/featsubset1.pdf}
+  \vspace{-0.2cm}
   \caption{Correlation heatmap of \texttt{dogs\_2006\_2016} removing features \textit{Vrig tric}, \textit{FS \%}, \textit{ESVI}, \textit{Allo diast} and \textit{Allo sist}.}
   \label{featsubset1}
-  \vspace{0.7cm}
+  \vspace{0.1cm}
   \centering
   	\includegraphics[width=0.8\textwidth]{figures/featsubset2.pdf}
+  \vspace{-0.2cm}
   \caption{Correlation heatmap of \texttt{dogs\_2006\_2016} removing features \textit{Vrig tric}, \textit{FE \%}, \textit{EDVI}, \textit{ESVI}, and \textit{Allo sist}.}
   \label{featsubset2}
 \end{figure}
 
 \section{Cross-validation and repeated holdout} \label{cvalreph}
-In order to estimate the out-of-sample performance of a model, the most commonly taken approach is to split the original dataset into a training set and a test set. Only the training set is used during learning, while the test set is set aside and not tampered with until the end, so it can be used to obtain a score of the learned model by comparing the test targets with the model's predictions obtained from test data. As a default, the metric here adopted for prediction scoring is $R^2$, defined as $1 - u/v$, where $u = \sum(y_{\text{true}} - y_{\text{pred}})^2$ and $v = \sum(y_{\text{true}} - \mu_{y_{\text{true}}})^2$.
+In order to estimate the out-of-sample performance of a model, the most commonly taken approach is to split the original dataset into a training set and a test set. Only the training set is used during learning, while the test set is set aside and not tampered with until the end, so it can be used to obtain a score of the learned model by comparing the test targets with the model's predictions obtained from test data. As a default, the metric here adopted for prediction scoring is $R^2$, defined as $1 - u/v$, where $u = \sum(y_{\text{true}} - y_{\text{pred}})^2$ and $v = \sum(y_{\text{true}} - \mu_{y_{\text{true}}})^2$, with $\mu_{y_{\text{true}}}$ being the mean of the test targets.
 
 However, most machine learning algorithms such as support vector machines depend on a number of hyperparameters that need to be chosen often arbitrarily, before a model can be obtained. This problem of \textit{model selection} can be solved by further splitting the training set into training and validation sets, and performing a grid search of all possible hyperparameter combinations. A model learned from the training set using a combination of hyperparameters can be scored using the validation set, without compromising the original test set.
 
@@ -530,7 +539,7 @@ A few workarounds were proposed in Section \ref{handlcens} to work with the stan
 A few modifications to the support vector machine model have been proposed specifically to work on unaltered censored datasets. What follows is an overview of a number of such models, also available in \cite{vanbelle11}.
 
 \section{SVCR}
-A simple alternative formulation of support vector regression, called SVCR \cite{shivaswamy07}, consists in relaxing the right-sided constraint in Eq.\ (\ref{smargprimal}) on censored data points. As shown in Fig.\ \ref{altlossfig}, this corresponds to changing the loss function so that, in the case of a censored observation, predictions of a magnitude greater than the recorded value are not penalized. Furthermore, the model as given by \cite{vanbelle11} does not require an $\varepsilon$ parameter, setting the width of the $\varepsilon$-insensitive tube to zero.
+A simple alternative formulation of support vector regression, called SVCR \cite{shivaswamy07}, consists in relaxing the right-sided constraint in (\ref{smargprimal}) on censored data points. As shown in Figure \ref{altlossfig}(a), this corresponds to changing the loss function so that, in the case of a censored observation, predictions of a magnitude greater than the recorded value are not penalized. Furthermore, the model as given by \cite{vanbelle11} does not require an $\varepsilon$ parameter, setting the width of the $\varepsilon$-insensitive tube to zero.
 
 For each data point $(x_{i}, y_{i}, \delta_{i})$, $\delta_{i} = 1$ if the observation is uncensored, while $\delta_{i} = 0$ if it is censored. The SVCR model can therefore be formulated as:
 \begin{equation} \label{svcrprimal}
@@ -596,12 +605,12 @@ b = y_{i} - \langle w,\Phi(x_{i})\rangle \text{.}
 		\raisebox{-.5\height}{\includegraphics[width=0.5\textwidth]{figures/altloss3.pdf}} \\
   	\end{tabular}
   	\end{adjustwidth}
-  	\caption{Loss functions as defined by SVCR (a) and SVRC (b).}
+  	\caption{Loss functions as defined by (a) SVCR (the present version having $\varepsilon=0$) and (b) SVRC.}
   	\label{altlossfig}
 \end{figure}
 
 \section{SVRC}
-Another formulation of support vector regression for censored data is SVRC \cite{khan08}, which employs a more configurable $\varepsilon$-insensitive loss function (see Fig.\ \ref{altlossfig}). This model applies different penalties to predictions higher and lower than the target values, while also distinguishing between censored and uncensored observations. Different penalty parameters need to be specified for the resulting four possible cases:
+Another formulation of support vector regression for censored data is SVRC \cite{khan08}, which employs a more configurable $\varepsilon$-insensitive loss function (see Figure \ref{altlossfig}(b)). This model applies different penalties to predictions higher and lower than the target values, while also distinguishing between censored and uncensored observations. Different penalty parameters need to be specified for the resulting four possible cases:
 \begin{itemize}
 \item Penalty $C$ for uncensored observations with predicted value lower than the target value.
 \item Penalty $C^{*}$ for uncensored observations with predicted value higher than the target value, with $C^{*} > C$.
@@ -682,7 +691,7 @@ The Lagrangian dual formulation is:
 \text{subject to} &\quad \alpha_{ij} \in [0,C] \text{,}
 \end{split}
 \end{equation}
-and can be kernelized with the step
+and it can be kernelized with the step
 \begin{equation} \label{ranksvmckern}
 \langle (\Phi(x_{i}) - \Phi(x_{j})),(\Phi(x_{k}) - \Phi(x_{m}))\rangle = k(x_{i},x_{k})-k(x_{j},x_{k})-k(x_{i},x_{m})+k(x_{j},x_{m}) \text{.}
 \end{equation}
@@ -692,17 +701,17 @@ f(x) = \sum_{i=1}^{\ell}\sum_{\footnotesize\begin{split} j:y_{i} > y_{j} \\ \tex
 \end{equation}
 Note that since the output values are only meaningful when compared with one another, the addition of a constant term $b$ is not useful.
 
-A major drawback of this model is that the number of constraints (or the number of multipliers in the Lagrangian dual) is $\mathcal{O}(\ell^{2})$, making the quadratic programming problem too computationally expensive. For this reason, a simplified model characterized by only $\mathcal{O}(\ell)$ constraints has been proposed in \cite{vanbelle08}. The reduction consists in comparing each data point $i$ with only one $\overline{j}(i)$, the comparable point with the largest survival time smaller than $y_{i}$, instead of doing it with all comparable data points.
+A major drawback of this model is that the number of constraints (or the number of multipliers in the Lagrangian dual) is $\mathcal{O}(\ell^{2})$, making the quadratic programming problem too computationally expensive. For this reason, a simplified model characterized by only $\mathcal{O}(\ell)$ constraints has been proposed in \cite{vanbelle08}. The reduction consists in comparing each data point $i$ with only one $\overline{\j}(i)$, the comparable point with the largest survival time smaller than $y_{i}$, instead of doing it with all comparable data points.
 
 \section{Van Belle Model 1}
-A survival model similar to the previously mentioned RankSVMC simplification was presented in \textit{Van Belle et al.} \cite{vanbelle11b}, referred to by the authors as ``Model 1'' \cite{vanbelle11}. The difference between the two lies in the right hand side of the first set of constraints in Eq.\ (\ref{ranksvmcprimal}), where in the new fomulation $1$ is replaced by $y_{i} - y_{\overline{j}(i)}$.
+A survival model similar to the previously mentioned RankSVMC simplification was presented in \textit{Van Belle et al.} \cite{vanbelle11b}, referred to by the authors as ``Model 1'' \cite{vanbelle11}. The difference between the two lies in the right hand side of the first set of constraints in Eq.\ (\ref{ranksvmcprimal}), where in the new fomulation $1$ is replaced by $y_{i} - y_{\overline{\j}(i)}$.
 
 Van Belle's Model 1 can therefore be formulated as:
 \begin{equation} \label{model1primal}
 \begin{split}
 \text{minimize} &\ \dfrac{1}{2}\| w \|^2 + C\sum_{i=1}^{\ell}\xi_{i} \\
 \text{subject to} &\ \begin{cases}
-\langle w,(\Phi(x_{i}) - \Phi(x_{\overline{j}(i)})) \rangle \geq y_{i} - y_{\overline{j}(i)} - \xi_{i} \text{,}\\
+\langle w,(\Phi(x_{i}) - \Phi(x_{\overline{\j}(i)})) \rangle \geq y_{i} - y_{\overline{\j}(i)} - \xi_{i} \text{,}\\
 \xi_{i} \geq 0 \text{.}
 \end{cases}
 \end{split}
@@ -711,14 +720,14 @@ The Lagrangian dual formulation is:
 \begin{equation} \label{model1dual}
 \begin{split}
 \text{maximize} &\
--\dfrac{1}{2}\sum_{i=1}^{\ell}\sum_{k=1}^{\ell}\alpha_{i}\alpha_{k}(k(x_{i},x_{k})-k(x_{\overline{j}(i)},x_{k})-k(x_{i},x_{\overline{j}(k)})+k(x_{\overline{j}(i)},x_{\overline{j}(k)})) \\
-&\ + \sum_{i=1}^{\ell}\alpha_{i}(y_{i} - y_{\overline{j}(i)}) \\
+-\dfrac{1}{2}\sum_{i=1}^{\ell}\sum_{k=1}^{\ell}\alpha_{i}\alpha_{k}(k(x_{i},x_{k})-k(x_{\overline{\j}(i)},x_{k})-k(x_{i},x_{\overline{\j}(k)})+k(x_{\overline{\j}(i)},x_{\overline{\j}(k)})) \\
+&\ + \sum_{i=1}^{\ell}\alpha_{i}(y_{i} - y_{\overline{\j}(i)}) \\
 \text{subject to} &\quad \alpha_{i} \in [0,C] \text{,}
 \end{split}
 \end{equation}
 and the prediction for a new point can be found as
 \begin{equation} \label{model1f}
-f(x) = \sum_{i=1}^{\ell}\alpha_{i}(k(x_{i},x) - k(x_{\overline{j}(i)},x)) \text{.}
+f(x) = \sum_{i=1}^{\ell}\alpha_{i}(k(x_{i},x) - k(x_{\overline{\j}(i)},x)) \text{.}
 \end{equation}
 
 \section{Van Belle Model 2}
@@ -729,7 +738,7 @@ Van Belle's Model 2 can be formulated as follows:
 \begin{split}
 \text{minimize} &\ \dfrac{1}{2}\| w \|^2 + C_{r}\sum_{i=1}^{\ell}\epsilon_{i} + C_{p}\sum_{i=1}^{\ell}(\xi_{i} + \xi_{i}^{*}) \\
 \text{subject to} &\ \begin{cases}
-\langle w,(\Phi(x_{i}) - \Phi(x_{\overline{j}(i)})) \rangle &\geq y_{i} - y_{\overline{j}(i)} - \epsilon_{i} \text{,}\\
+\langle w,(\Phi(x_{i}) - \Phi(x_{\overline{\j}(i)})) \rangle &\geq y_{i} - y_{\overline{\j}(i)} - \epsilon_{i} \text{,}\\
 y_{i} - \langle w,\Phi(x_{i}) \rangle - b &\leq \xi_{i} \text{,}\\
 \delta_{i}(\langle w,\Phi(x_{i}) \rangle + b - y_{i}) &\leq \xi_{i}^{*} \text{,}\\
 \epsilon_{i} &\geq 0 \text{,}\\
@@ -742,8 +751,8 @@ The Lagrangian dual formulation is:
 \begin{equation} \label{model2dual}
 \begin{split}
 \text{maximize} &\
--\dfrac{1}{2}\sum_{i=1}^{\ell}\sum_{k=1}^{\ell}\alpha_{i}\alpha_{k}(k(x_{i},x_{k})-k(x_{\overline{j}(i)},x_{k})-k(x_{i},x_{\overline{j}(k)})+k(x_{\overline{j}(i)},x_{\overline{j}(k)})) \\
-&\ - \sum_{i=1}^{\ell}\sum_{k=1}^{\ell}(\beta_{i} - \delta_{i}\beta_{i}^{*})\alpha_{k}(k(x_{i},x_{k}) - k(x_{i},x_{\overline{j}(k)})) + \sum_{i=1}^{\ell}\alpha_{i}(y_{i} - y_{\overline{j}(i)}) \\
+-\dfrac{1}{2}\sum_{i=1}^{\ell}\sum_{k=1}^{\ell}\alpha_{i}\alpha_{k}(k(x_{i},x_{k})-k(x_{\overline{\j}(i)},x_{k})-k(x_{i},x_{\overline{\j}(k)})+k(x_{\overline{\j}(i)},x_{\overline{\j}(k)})) \\
+&\ - \sum_{i=1}^{\ell}\sum_{k=1}^{\ell}(\beta_{i} - \delta_{i}\beta_{i}^{*})\alpha_{k}(k(x_{i},x_{k}) - k(x_{i},x_{\overline{\j}(k)})) + \sum_{i=1}^{\ell}\alpha_{i}(y_{i} - y_{\overline{\j}(i)}) \\
 &\ - \dfrac{1}{2}\sum_{i=1}^{\ell}\sum_{k=1}^{\ell}(\beta_{i} - \delta_{i}\beta_{i}^{*})(\beta_{k} - \delta_{k}\beta_{k}^{*})k(x_{i},x_{k}) + \sum_{i=1}^{\ell}(\beta_{i} - \delta_{i}\beta_{i}^{*})y_{i}\\
 \text{subject to} &\ \begin{cases}
 \sum_{i=1}^{\ell}(\beta_{i} - \delta_{i}\beta_{i}^{*}) = 0 \text{,}\\
@@ -754,7 +763,7 @@ The Lagrangian dual formulation is:
 \end{equation}
 and the prediction for a new point can be found as
 \begin{equation} \label{model2f}
-f(x) = \sum_{i=1}^{\ell}\alpha_{i}(k(x_{i},x) - k(x_{\overline{j}(i)},x))+(\beta_{i}-\delta_{i}\beta_{i}^{*})k(x_{i},x)+b \text{.}
+f(x) = \sum_{i=1}^{\ell}\alpha_{i}(k(x_{i},x) - k(x_{\overline{\j}(i)},x))+(\beta_{i}-\delta_{i}\beta_{i}^{*})k(x_{i},x)+b \text{.}
 \end{equation}
 As the obtained prognostic index assumes a meaningful survival time value, the issue of computing $b$ becomes relevant again. In order to do that, the method used for SVCR is applied to the dual variables corresponding to the regression constraints. Therefore, if some $\beta_{i} \in (0,C_{p})$ or $\beta_{i}^{*} \in (0,C_{p}) \wedge \delta_{i} = 1$, then
 \begin{equation} \label{model2b3}
@@ -765,9 +774,10 @@ b = y_{i} - \langle w,\Phi(x_{i})\rangle \text{.}
 \label{chcustsvr}
 Initially, the analyses performed for this thesis made use of the scikit-learn \cite{sklearn} implementation of the standard Support Vector Regression model. The estimator class \texttt{SVR}, taken from the scikit-learn module \texttt{svm}, was used in the pipeline presented in Section \ref{learnpipeline}. However, it soon became apparent that alternative models not present in the library had to be used, and so a custom SVR implementation was needed. To this end, the Gurobi optimizer \cite{gurobi} was chosen as a quadratic programming solver.
 
-Fig.\ \ref{custsvrfig} illustrates a comparison between the scikit-learn standard SVR and the custom implementation when tested on randomly generated functions.
+Figure \ref{custsvrfig} illustrates a comparison between the scikit-learn standard SVR and the custom implementation when tested on randomly generated functions.
 
 \begin{figure}[hp]
+	\vspace*{-0.8cm}
 	\begin{adjustwidth}{-1.5in}{-1in}
   	\centering
   	\begin{tabular}{cc}
@@ -779,6 +789,7 @@ Fig.\ \ref{custsvrfig} illustrates a comparison between the scikit-learn standar
 		\includegraphics[width=0.58\textwidth]{figures/custsvrcomp6.pdf} \\
   	\end{tabular}
   	\end{adjustwidth}
+  	\vspace*{-0.2cm}
   	\caption{Comparison between scikit-learn SVR and \texttt{customSVR} learnt functions on linear (left column) and nonlinear (right column) noisy artificial data.}
   	\label{custsvrfig}
 \end{figure}
@@ -786,28 +797,28 @@ Fig.\ \ref{custsvrfig} illustrates a comparison between the scikit-learn standar
 \section{The \texttt{customsvr} module}
 The custom estimator classes implemented for this thesis are collected in the \texttt{customsvr} python module. They can substitute the scikit-learn estimators in the learning pipeline without compatibilty problems.
 
-An abstract class \texttt{AbstractSVR}, created using the \texttt{abc} (Abstract Base Classes) python module, defines the attributes and methods shared by all SVR models in the library. Its constructor \texttt{\_\_init\_\_} requires the parameters:
+An abstract class \texttt{AbstractSVR}, created using the \texttt{abc} (Abstract Base Classes) python module, defines the attributes and methods shared by all SVR models in the library. Its constructor \texttt{\_\_init\_\_} requires the following parameters:
 \begin{itemize}
-\item \texttt{string kernel}. Specifies the kernel type between ``linear'', ``poly'' (polynomial) and ``rbf'' (radial basis function). The default being ``rbf'';
-\item \texttt{float gamma}. The $\gamma$ coefficient for ``rbf'' and ``poly'' kernels. If set at ``auto'', then $\gamma=1/\text{n\_features}$. The default is ``auto'';
-\item \texttt{int degree}. The degree of the polynomial kernel ``poly'', ignored by other kernels. The default is 3;
-\item \texttt{float coef0}. The independent term in the polynomial kernel ``poly'', ignored by other kernels. The default is 0.0;
+\item \texttt{string kernel}. Specifies the kernel type between ``linear'', ``poly'' (polynomial) and ``rbf'' (radial basis function), the default being ``rbf'';
+\item \texttt{float gamma}. The $\gamma$ coefficient for ``rbf'' and ``poly'' kernels. If set at ``auto'', then $\gamma=1/\text{n\_features}$ (with default value equal to ``auto'');
+\item \texttt{int degree}. The degree of the polynomial kernel ``poly'', ignored by other kernels. The default value is 3;
+\item \texttt{float coef0}. The independent term in the polynomial kernel ``poly'', ignored by other kernels. The default value is 0.0;
 \item \texttt{bool verbose}. Enables verbose Gurobi output. False by default.
 \end{itemize}
 The other methods defined by the abstract class are:
 \begin{itemize}
-\item \texttt{reset(self)}. It resets all internal attributes relative to training to their initial values, including the Gurobi optimizer instance;
+\item \texttt{reset(self)}, resetting all internal attributes relative to training to their initial values, including the Gurobi optimizer instance;
 \item \texttt{k(self, a, b)}, with \texttt{a} and \texttt{b} being two numpy arrays. It computes the kernel product of two data points, based on the kernel function chosen at initialization;
 \item \texttt{fit(self, X, y)}, with \texttt{X} being a numpy matrix, and \texttt{y} a numpy array. It solves the quadratic programming problem on the dataset \texttt{X} with targets \texttt{y}, memorizing support vectors and relative coefficients necessary to evaluate $f$ on future points;
-\item \texttt{hypothesis\_f(self, x)}, with \texttt{x} being a numpy array. It evaluates the obtained $f(x)$ on a new point;
-\item \texttt{predict(self, X)}, with \texttt{X} being a numpy matrix. It evaluates $f(x)$ on all samples $x \in X$;
-\item \texttt{score(self, X, y, metric)}, with \texttt{X} being a numpy matrix, \texttt{y} a numpy array, and \texttt{metric} the chosen score metric, by default ``R2''. It scores the current model on new data \texttt{X} with known target values \texttt{y}, adopting a certain scoring metric;
+\item \texttt{hypothesis\_f(self, x)}, with \texttt{x} being a numpy array. It evaluates the obtained $f$ on a new point;
+\item \texttt{predict(self, X)}, with \texttt{X} being a numpy matrix. It evaluates $f$ on all samples $x \in X$;
+\item \texttt{score(self, X, y, metric)}, with \texttt{X} being a numpy matrix, \texttt{y} a numpy array, and \texttt{metric} the chosen score metric, by default ``R2''. It scores the current model on new data \texttt{X} with known target values \texttt{y}, adopting the chosen scoring metric (the only metric currently implemented for the standard case being $R^2$);
 \item \texttt{scoreR2(self, X, y)}, with \texttt{X} being a numpy matrix and \texttt{y} a numpy array. Called by \texttt{score} when \texttt{metric="R2"}, it returns the coefficient of determination $R^2$ (as defined in Section \ref{cvalreph}) for the predictions of the model on \texttt{X}.
 \end{itemize}
 \texttt{AbstractSVR} is extended by another abstract class, \texttt{AbstractCensSVR}, which adds features necessary for models specialized in censored data. This includes the methods:
 \begin{itemize}
-\item \texttt{comp(self, d, y, i, j)}, with \texttt{d} and \texttt{y} being numpy arrays, and \texttt{i} and \texttt{j} being integers. It checks, based on censor deltas \texttt{d} and target values \texttt{y}, if points at indices \texttt{i} and \texttt{j} are comparable, using the function detailed in Eq.\ (\ref{comparable});
-\item \texttt{scoreCindex(self, X, y)}, with \texttt{X} being a numpy matrix and \texttt{y} a numpy array. Called by \texttt{score} when \texttt{metric="c-index"}, it returns the concordance index (as defined in Eq.\ (\ref{c-index})) for the predictions of the model on \texttt{X}.
+\item \texttt{comp(self, d, y, i, j)}, with \texttt{d} and \texttt{y} being numpy arrays, and \texttt{i} and \texttt{j} being integers. It checks, based on censor deltas \texttt{d} and target values \texttt{y}, if points at indices \texttt{i} and \texttt{j} are comparable, using the function detailed in (\ref{comparable});
+\item \texttt{scoreCindex(self, X, y)}, with \texttt{X} being a numpy matrix and \texttt{y} a numpy array. Called by \texttt{score} when \texttt{metric="c-index"}, it returns the concordance index (as defined in (\ref{c-index})) for the predictions of the model on \texttt{X}.
 \end{itemize}
 In order to remain fully compatible with the training pipeline, any model that needs a special feature $\delta$ to discriminate censored from uncensored examples obtains such feature from the last column of the data matrix \texttt{X}. By doing this, no further arguments are added to the estimator interface. However, certain functions used in the pipeline had to be adapted by adding a \texttt{censSVR} parameter, set to \textit{False} by default, to make sure that data matrices \texttt{X} are correctly fed to the estimator.
 
@@ -824,11 +835,12 @@ These are the models implemented in the \texttt{customsvr} module:
 \end{itemize}
 
 \section{Quadratic programming with Gurobi}
-Support Vector Regression ultimately takes the form of a convex optimization problem solvable with quadratic programming. In praticular, \texttt{customsvr} makes use of the Gurobi optimization framework for constructing and solving models.
+Support Vector Regression ultimately takes the form of a convex optimization problem solvable with quadratic programming techniques. In praticular, \texttt{customsvr} makes use of the Gurobi optimization framework for constructing and solving models.
 
 Each class from the custom module implements its \texttt{fit} method using the Gurobi python API, also called \texttt{gurobipy}. All operations are performed by interacting with \texttt{gurobipy} objects, the most important of which is the \texttt{Model}, comprised of a set of variables, an objective function and a set of constraints. The variables themselves are objects of class \texttt{Var}, which when combined using overloaded standard python operators create expression objects (\texttt{LinExpr} and \texttt{QuadExpr}). An expresson can then be set as the objective function of a model (with \texttt{Model.setObjective}), or used as a constraint (\texttt{Constr} object).
 
-The setup and solution of the standard Support Vector Machine model is implemented as follows:
+The setup and solution of the standard Support Vector Machine model is implemented as in Algorithm \ref{stdgurobialg}.
+\begin{algorithm}[H]
 \begin{lstlisting}
 self.model = gpy.Model('SVR')
 self.model.setParam('OutputFlag', self.verbose)
@@ -849,6 +861,10 @@ self.model.optimize()
 if self.model.Status != gpy.GRB.OPTIMAL:
 	raise ValueError('optimal solution not found!')
 \end{lstlisting}
+\caption{The standard SVR model implemented with the Gurobi python API}
+\label{stdgurobialg}
+\end{algorithm}
+
 As a note, the \texttt{quicksum} function is a more efficient alternative to the native python \texttt{sum} function for constructing Gurobi expressions from an iterable.
 
 \chapter{Results and Discussion}
@@ -856,7 +872,7 @@ As a note, the \texttt{quicksum} function is a more efficient alternative to the
 After the architecture described in previous Chapters had been set set up, many experiments were performed on the \texttt{dogs\_2006\_2016} dataset involving numerous combinations of models and training pipeline settings. This Chapter is about the results of these experiments and their discussion.
 
 \section{First SVR experiments}
-Initially, the tests performed on the dataset all involved the standard SVR model with different training pipeline configurations, scored with the $R^2$ metric. The changing settings include the use of different feature subsets, the ``drop'' and ``max'' censoring policies, the use of scalers and outlier elimination. Model selection was performed by 5 runs of repeated holdout, with a test set of 10 points and a validation set of 15 points. Each test was repeated 5 times.
+Initially, the tests performed on the dataset all involved the standard SVR model with different training pipeline configurations, scored with the $R^2$ metric. The changing settings include the use of different feature subsets, the ``drop'' and ``max'' censoring policies, the use of scalers and outlier elimination. Model selection was performed by 5 runs of repeated holdout, with a test set of 10 points and a validation set of 15 points. Each test was repeated 5 times, each time randomly shuffling data.
 
 The results, shown in Table \ref{resultstab:1}, suggest a generally poor performance. $R^2$ scores hovering around zero are an indication of a model with prediction power not better than simply taking the mean of the target values, as it means that $\sum(y_{\text{true}} - y_{\text{pred}})^2 \simeq \sum(y_{\text{true}} - \mu_{y_{\text{true}}})^2$. When the score becomes negative, it means that the model performs even worse than this baseline. Anyhow, the best set of settings was shown to be the combination of the random generation of NA values, the substitution of censored survival times for the maximum value, and the use of \texttt{StandardScaler}.
 
@@ -881,9 +897,9 @@ Removing \textit{IP Gravity}, \textit{FS \%}, \textit{ESVI}, \textit{Allo diast}
 
 \section{Alternative models experiments}
 
-With the introduction of alternative models specialized in censored data, a new batch of experiments has been conducted in order to compare their performance. Since not all of these models produce results that can be considered meaningful as standalone survival times, the preferred scoring metric chosen for the comparisons was the \textit{c-index}. Model selection has been performed by 5 runs of repeated holdout, with a test set of 10 points and a validation set of 15 points. Each test was repeated 5 times.
+With the introduction of alternative models specialized in censored data, a new batch of experiments has been conducted in order to compare their performance. Since not all of these models produce results that can be considered meaningful as standalone survival times, the preferred scoring metric chosen for the comparisons was the \textit{c-index}. Model selection has been performed by 5 runs of repeated holdout, with a test set of 10 points and a validation set of 15 points. Each test was repeated 5 times, randomly shuffling data at each iteration.
 
-The results, shown in Table \ref{resultstab:2}, indicate a good ranking performance (by c-index), while prediction performance (by $R^2$) remains poor. Even though the c-index score of the standard SVR model is already decent, the introduction of a censoring-specific loss function with SVCR shows increased performance. On the other hand, SVRC, RankSVMC and Model 1 seem to not bring any significant improvement to the standard model on this dataset. Finally Model 2, with its combination of all approaches, appears to suffer increased variance in performance while not faring better than the alternatives.
+The results, shown in Table \ref{resultstab:2}, indicate a good ranking performance (by c-index), while prediction performance (by $R^2$) remains poor. Even though the c-index score of the standard SVR model is already decent, the introduction of a censoring-specific loss function with SVCR shows increased performance. On the other hand, SVRC, RankSVMC and Model 1 seem to not bring any significant improvement to the standard model. Finally Model 2, with its combination of all approaches, appears to suffer increased variance in performance while not scoring better than the alternatives.
 
 \begin{center}
  \begin{tabular}{ |m{7cm}|c|c|c|c| }

@@ -206,11 +206,11 @@ ax.arrow(0, ymin, 0., ymax-ymin, fc='k', ec='k', lw = lw,
 ax.plot(x, y, color='black')
 
 ax.annotate("$+\\varepsilon$", fontsize=18, xy=(0.35, -0.2), xycoords='data')
-ax.annotate("$-\\varepsilon^*$", fontsize=18, xy=(-0.7, -0.2), xycoords='data')
+ax.annotate("$-\\varepsilon$", fontsize=18, xy=(-0.7, -0.2), xycoords='data')
 ax.annotate("loss", fontsize=18, xy=(0, 1.73), xycoords='data', ha='center')
 ax.annotate("$y - f(x)$", fontsize=14, xy=(1.6, -0.2), xycoords='data', ha='center')
-ax.annotate("$C$", fontsize=14, xy=(1.3, 0.1), xycoords='data', ha='center')
-ax.annotate("$C^*$", fontsize=14, xy=(-0.8, 0.1), xycoords='data', ha='center')
+ax.annotate("$C$", fontsize=14, xy=(1.2, 0.07), xycoords='data', ha='center')
+ax.annotate("$C^*$", fontsize=14, xy=(-0.8, 0.07), xycoords='data', ha='center')
 
 plt.savefig('altloss3.pdf', bbox_inches="tight")
 
@@ -221,10 +221,10 @@ plt.figure()
 x = np.linspace(-1.7, 1.7, 400)
 
 def epsloss(t):
-    if t<=-0.5:
-        return 0.7*(-t-0.5)
-    elif t>=0.5:
-        return 1.3*(t-0.5)
+    if t<=-0.3:
+        return 0.7*(-t-0.3)
+    elif t>=0.3:
+        return 1.3*(t-0.3)
     else:
         return 0
 
@@ -274,11 +274,11 @@ ax.arrow(0, ymin, 0., ymax-ymin, fc='k', ec='k', lw = lw,
 
 ax.plot(x, y, color='black')
 
-ax.annotate("$+\\varepsilon_c$", fontsize=18, xy=(0.35, -0.2), xycoords='data')
-ax.annotate("$-\\varepsilon_c^*$", fontsize=18, xy=(-0.7, -0.2), xycoords='data')
+ax.annotate("$+\\varepsilon_c$", fontsize=18, xy=(0.15, -0.2), xycoords='data')
+ax.annotate("$-\\varepsilon_c$", fontsize=18, xy=(-0.5, -0.2), xycoords='data')
 ax.annotate("loss", fontsize=18, xy=(0, 1.73), xycoords='data', ha='center')
 ax.annotate("$y - f(x)$", fontsize=14, xy=(1.6, -0.2), xycoords='data', ha='center')
-ax.annotate("$C_c$", fontsize=14, xy=(0.9, 0.2), xycoords='data', ha='center')
-ax.annotate("$C_c^*$", fontsize=14, xy=(-1.2, 0.2), xycoords='data', ha='center')
+ax.annotate("$C_c$", fontsize=14, xy=(0.7, 0.2), xycoords='data', ha='center')
+ax.annotate("$C_c^*$", fontsize=14, xy=(-1, 0.2), xycoords='data', ha='center')
 
 plt.savefig('altloss4.pdf', bbox_inches="tight")

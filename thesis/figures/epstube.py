@@ -11,6 +11,7 @@ from matplotlib import rc
 rc('text', usetex=True)
 rc('font', size=14)
 rc('legend', fontsize=13)
+plt.rc('text.latex', preamble=r'\usepackage{amsfonts}')
 
 np.random.seed(10)
 
@@ -75,5 +76,7 @@ ax.annotate("",
 ax.annotate("$+\\varepsilon$", fontsize=18, xy=(1.78, 1.7*0.3 + 1.31), xycoords='data')
 ax.annotate("$-\\varepsilon$", fontsize=18, xy=(1.78, 1.7*0.3 + 0.61), xycoords='data')
 ax.annotate("$f(x)$", fontsize=15, xy=(1.71, 1.7*0.3 + 1.05), xycoords='data')
+ax.annotate("$\mathbb{R}$", fontsize=18, xy=(0.05, 2.35), xycoords='data')
+ax.annotate("$\mathcal{X}$", fontsize=18, xy=(1.8, 0.1), xycoords='data')
 
 plt.savefig('epstube.pdf', bbox_inches="tight")

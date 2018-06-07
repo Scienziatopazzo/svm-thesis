@@ -1,5 +1,8 @@
 # SVMRegression - Research Activity Log
 
+## 7th June 2018
+* Corrected thesis draft.
+
 ## 6th June 2018
 * Finished results tables and modified *Results and Discussion* and *Conclusions*.
 
