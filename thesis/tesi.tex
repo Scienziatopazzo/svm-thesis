@@ -272,7 +272,7 @@ w = \sum_{i=1}^{\ell}(\alpha_{i}-\alpha_{i}^{*})\Phi(x_{i}) \text{,}
 f(x) = \sum_{i=1}^{\ell}(\alpha_{i}-\alpha_{i}^{*})k(x_{i},x) + b \text{,}
 \end{equation}
 with the difference from the linear case being that $ w $ is no longer computed explicitly, while $ f $ only needs its support vectors $ x_{i} $ in their original low-dimensional form to be computed. As for $b$, if some $\alpha_{j}^{(*)} \in (0,C)$, then
-\begin{equation} \label{compb3}
+\begin{equation} \label{nonlincompb3}
 b = - \varepsilon + y_{j} - \sum_{i=1}^{\ell}(\alpha_{i}-\alpha_{i}^{*})k(x_{i},x_{j}) \text{.}
 \end{equation}
 An example of an admissible kernel is the polynomial kernel
@@ -332,7 +332,7 @@ Here is the list of all features:
 \section{Consistency check}
 The \texttt{dogs\_2006\_2016} dataset was provided without any in-built formulas, so it was deemed sensible to try a number of consistency checks on dependent features, such as dates and times.
 \subsection*{Date consistency}
-The first check involved testing the validity of the inequality $ \text{\emph{Birth date}} \leq \text{\emph{First visit}} \leq \text{\emph{Therapy started}} \leq \text{\emph{Date of death}} $. This check produced 42 errors, all from data points for which $ \text{\emph{Therapy started}} < \text{\emph{First visit}} $, while in all the remaining cases the two values were equal. Then it became clear that the correct interpretation of the data corresponds in fact to the inequality $ Birth\; date \leq \text{\emph{Therapy started}} \leq \text{\emph{First visit}} \leq \text{\emph{Date of death}} $. \textit{Therapy started} is equal to \textit{First visit} when the therapy started on the first visit, while it is set to an earlier date if the dog was already undergoing therapy under different supervision.
+The first check involved testing the validity of the inequality $ \text{\emph{Birth date}} \leq \text{\emph{First visit}} \leq \text{\emph{Therapy started}} \leq \text{\emph{Date of death}} $. This check produced 42 errors, all from data points for which $ \text{\emph{Therapy started}} < \text{\emph{First visit}} $, while in all the remaining cases the two values were equal. Then it became clear that the correct interpretation of the data corresponds in fact to the inequality $ \text{\emph{Birth date}} \leq \text{\emph{Therapy started}} \leq \text{\emph{First visit}} \leq \text{\emph{Date of death}} $. \textit{Therapy started} is equal to \textit{First visit} when the therapy started on the first visit, while it is set to an earlier date if the dog was already undergoing therapy under different supervision.
 \subsection*{Survival time consistency}
 A check of the \textit{Survival time} as calculated from \textit{First visit} to \textit{Date of death} revealed only one erroneous data point, with an error delta of exactly one year. Since the value was supposedly obtained automatically, the origin of this error is unclear. A decision was made to fix this error in all future analyses by using by default the value obtained from the dates.
 \subsection*{Cardiac arrest and death}

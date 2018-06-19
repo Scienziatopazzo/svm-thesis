@@ -1,0 +1,490 @@
+\documentclass{beamer}
+
+\usepackage{amssymb,amsmath,amsthm}
+\usepackage{graphicx}
+\usepackage{url}
+\usepackage{hyperref}
+\usepackage{epsfig}
+\usepackage[english]{babel}
+\usepackage[utf8]{inputenc}
+\usepackage{multirow}
+\usepackage{array}
+
+\usepackage{listings}
+\usepackage{color}
+
+\definecolor{dkgreen}{rgb}{0,0.6,0}
+\definecolor{gray}{rgb}{0.5,0.5,0.5}
+\definecolor{mauve}{rgb}{0.58,0,0.82}
+
+\lstset{frame=tb,
+  language=python,
+  aboveskip=3mm,
+  belowskip=3mm,
+  showstringspaces=false,
+  columns=flexible,
+  basicstyle={\tiny\ttfamily},
+  numbers=none,
+  numberstyle=\tiny\color{gray},
+  keywordstyle=\color{blue},
+  commentstyle=\color{dkgreen},
+  stringstyle=\color{mauve},
+  breaklines=true,
+  breakatwhitespace=true,
+  tabsize=3,
+  frame=none
+}
+
+\setbeamerfont{section title}{parent=title}
+\setbeamercolor{section title}{parent=titlelike}
+\defbeamertemplate*{section p}{default}[1][]
+{
+   \centering
+     \begin{beamercolorbox}[sep=8pt,center,#1]{section title}
+       \usebeamerfont{section title}\insertsection\par
+     \end{beamercolorbox}
+}
+\newcommand*{\sectionp}{\usebeamertemplate*{section p}}
+
+\title{SV-based regression techniques for survival analysis: a case study on veterinary data}
+\author[Elvis Nava]{{\large Elvis Nava}\\[1ex]{\footnotesize \emph{Supervised by:}\\ Dott.\ Dario Malchiodi\\[-1ex] Dott.ssa Anna Maria Zanaboni}}
+\date{Luglio 2018}
+\institute[Unimi]{{\footnotesize Università degli Studi di Milano}\\[1ex] Facoltà di Scienze e Tecnologie\\ Corso di Laurea in Informatica}
+\logo{\includegraphics[width=15mm]{unimi.jpg}}
+\newcommand{\nologo}{\setbeamertemplate{logo}{}}
+
+\usetheme{Frankfurt}
+\makeatletter
+\setbeamertemplate{headline}
+{%
+    \begin{beamercolorbox}[wd=\paperwidth,colsep=1.5pt]{upper separation line head}
+    \end{beamercolorbox}
+    \begin{beamercolorbox}[wd=\paperwidth,ht=2.5ex,dp=1.125ex,%
+      leftskip=.3cm,rightskip=.3cm plus1fil]{title in head/foot}
+      \usebeamerfont{title in head/foot}\insertshorttitle
+    \end{beamercolorbox}
+    \begin{beamercolorbox}[wd=\paperwidth,ht=2.5ex,dp=1.125ex,%
+      leftskip=.3cm,rightskip=.3cm plus1fil]{section in head/foot}
+      \usebeamerfont{section in head/foot}
+      \insertsectionhead
+    \end{beamercolorbox}
+}
+\makeatother
+
+\begin{document}
+
+\begin{frame}
+\maketitle
+\end{frame}
+
+\begin{frame}
+\frametitle{Table of Contents}
+\tableofcontents
+\end{frame}
+
+\section{Support Vector Machines for Regression}
+\frame{\sectionp}
+
+
+\begin{frame}
+\frametitle{Function estimation and Risk minimization}
+\begin{itemize}
+\item Let an input space $ \mathcal{X} $ and a set of training data $ \mathbf{X} = \lbrace (x_{1},y_{1}),\ldots,(x_{\ell},y_{\ell})\rbrace \subset \mathcal{X} \times \mathbb{R} $ drawn (i.i.d.) from the distribution $ P(x,y) $.
+\item We must find the function $ f $ minimizing
+\begin{align*} R[f] = \int c(x,y,f(x))dP(x,y) \text{.}
+\end{align*}
+\item $ P(x,y) $ is not known, therefore we can only compute
+\begin{align*} R_{\text{emp}}[f] = \dfrac{1}{\ell} \sum_{i=1}^{\ell}c(x_{i},y_{i},f(x_{i})) \text{.}
+\end{align*}
+\end{itemize}
+\end{frame}
+
+\begin{frame}
+\frametitle{Function estimation and Risk minimization}
+\begin{itemize}
+\item Minimizing $ R_{\text{emp}}[f] $ is not ideal, as generally 
+\begin{align*} \operatorname*{argmin}_{f} R_{\text{emp}}[f] \neq \operatorname*{argmin}_{f} R[f] \text{.}
+\end{align*}
+\item We must reduce the capacity of the function class $H$.
+\item In the case of SVR, we control the weights $w$ that define $f$
+\begin{align*}
+R_{\text{reg}}[f] = R_{\text{emp}}[f] + \dfrac{\lambda}{2}\| w \|^2
+\end{align*}
+with $\lambda > 0$.
+\end{itemize}
+\end{frame}
+
+
+\begin{frame}
+\frametitle{Linear Support Vector Regression}
+\begin{itemize}
+\item In the linear case, $ f $ takes the form:
+\begin{align*}
+f(x) = \langle w,x \rangle + b \ \text{with} \ w \in \mathcal{X}, b \in \mathbb{R} \text{.}
+\end{align*}
+\item SVR training corresponds to the convex optimization problem:
+\begin{align*}
+\begin{split}
+\text{minimize} &\ \dfrac{1}{2}\| w \|^2 + C\sum_{i=1}^{\ell}(\xi_{i} + \xi_{i}^{*}) \\
+\text{subject to} &\ \begin{cases}
+y_{i} - \langle w,x_{i} \rangle - b &\leq \varepsilon + \xi_{i} \text{,}\\
+\langle w,x_{i} \rangle + b - y_{i} &\leq \varepsilon + \xi_{i}^{*} \text{,}\\
+\xi_{i}, \xi_{i}^{*} &\geq 0 \text{.}
+\end{cases}
+\end{split}
+\end{align*}
+\end{itemize}
+\end{frame}
+
+{\nologo
+\begin{frame}
+\frametitle{Linear Support Vector Regression}
+\begin{itemize}
+\item SVR uses an $ \varepsilon $-insensitive loss function:
+\begin{align*}
+c(x,y,f(x)) = \vert y - f(x) \vert_{\varepsilon} = \begin{cases}
+0 &\ \text{if } \vert y - f(x) \vert \leq \varepsilon \text{,}\\
+\vert y - f(x) \vert - \varepsilon &\ \text{otherwise} \text{.}
+\end{cases}
+\end{align*}
+\end{itemize}
+\begin{figure}[h]
+  	\centering
+  	\includegraphics[width=0.49\textwidth]{figures/epstube.pdf}
+  	\includegraphics[width=0.49\textwidth]{figures/epsloss.pdf}
+\end{figure}
+\end{frame}}
+
+\begin{frame}
+\frametitle{Linear Support Vector Regression}
+\begin{itemize}
+\item The optimization is performed on the Lagrangian dual:
+\begin{scriptsize}
+\begin{align*}
+\begin{aligned}
+\text{maximize} &\quad
+-\dfrac{1}{2}\sum_{i,j=1}^{\ell}(\alpha_{i} - \alpha_{i}^{*})(\alpha_{j} - \alpha_{j}^{*})\langle x_{i},x_{j} \rangle -\varepsilon\sum_{i=1}^{\ell}(\alpha_{i} + \alpha_{i}^{*}) + \sum_{i=1}^{\ell}y_{i}(\alpha_{i}-\alpha_{i}^{*}) \\
+\text{subject to} &\quad \left\{\begin{aligned}
+&\sum_{i=1}^{\ell}(\alpha_{i} - \alpha_{i}^{*}) = 0 \text{,}\\
+&\alpha_{i},\alpha_{i}^{*} \in [0,C] \text{.}
+\end{aligned}\right.
+\end{aligned}
+\end{align*}
+\end{scriptsize}
+\item $ f $ can be written as a \textit{support vector expansion}
+\begin{align*}
+f(x) = \sum_{i=1}^{\ell}(\alpha_{i}-\alpha_{i}^{*})\langle x_{i},x\rangle + b \text{.}
+\end{align*}
+\item Each $ x_{i} $ for which $ (\alpha_{i}-\alpha_{i}^{*}) \neq 0 $ is called a \textit{support vector}.
+\end{itemize}
+\end{frame}
+
+
+\begin{frame}
+\frametitle{Nonlinearity and kernels}
+\begin{itemize}
+\item The training points $ x_{i} $ can be preprocessed using a nonlinear map $ \Phi : \mathcal{X} \rightarrow \mathcal{F} $ into a higher-dimensional feature space $ \mathcal{F} $.
+\item If a \textit{kernel} function $ k $ is known such that $ k(x_{i},x_{j}) = \langle\Phi (x_{i}),\Phi (x_{j})\rangle $, then it can be used instead of computing $ \Phi $ directly.
+\item $k$ can be substituted into the Lagrangian dual and into $f$
+\begin{align*}
+f(x) = \sum_{i=1}^{\ell}(\alpha_{i}-\alpha_{i}^{*})k(x_{i},x) + b \text{.}
+\end{align*}
+\end{itemize}
+\end{frame}
+
+\begin{frame}
+\frametitle{Nonlinearity and kernels}
+Examples of admissible kernels:
+\begin{itemize}
+\item The polynomial kernel \begin{align*}
+k(x_{i},x_{j}) = (\gamma\langle x_{i},x_{j} \rangle + c)^{d}
+\end{align*}
+with $ d \in \mathbb{N} $, $ \gamma > 0 $ and $ c \geq 0 $.
+\item The gaussian kernel \begin{align*}
+k(x_{i},x_{j}) = e^{-\dfrac{\| x_{i}-x_{j} \|^{2}}{2\gamma^{2}}}
+\end{align*}
+with $ \gamma > 0 $.
+\end{itemize}
+\end{frame}
+
+\section{Dataset Preprocessing and Exploration}
+\frame{\sectionp}
+
+\begin{frame}
+\frametitle{Consistency check}
+A number of consistency checks were performed on dependent features of the \texttt{dogs\_2006\_2016} dataset, such as
+\begin{itemize}
+\item Date consistency: $ \text{\emph{Birth date}} \leq \text{\emph{Therapy started}} \leq \text{\emph{First visit}} \leq \text{\emph{Date of death}} $.
+\item Survival time consistency: \textit{Survival time} as calculated from \textit{First visit} to \textit{Date of death}.
+\item Cardiac arrest and death: $\text{\emph{CardiacDeath}} \rightarrow \text{\emph{Dead}} $.
+\item Therapy category: calculated as the sum of various binary features.
+\item Age: whether it was recorded on the first visit, or on another occasion.
+\end{itemize}
+\end{frame}
+
+
+\begin{frame}
+\frametitle{Exploratory analysis}
+A correlation heatmap of the available features was used to highlight possible dependencies among them:
+\begin{figure}[h]
+  \vspace{-0.2cm}
+  \centering
+  	\includegraphics[width=0.72\textwidth]{figures/heatmap.pdf}
+\end{figure}
+\end{frame}
+
+{\nologo
+\begin{frame}
+\frametitle{Exploratory analysis}
+\textit{Survival time} was plotted against all the other features in a series of joint plots
+\begin{figure}[h]
+  	\centering
+  	\begin{tabular}{cc}
+		\includegraphics[width=0.5\textwidth]{figures/jointplot3.pdf} &
+  		\includegraphics[width=0.5\textwidth]{figures/jointplot9.pdf} \\
+  	\end{tabular}
+\end{figure}
+\end{frame}}
+
+\begin{frame}
+\frametitle{Handling missing and censored data}
+The following policies were experimented with in order to deal with NA values:
+\begin{itemize}
+\item Dropping NA values.
+\item Using the mean value.
+\item Sampling from a normal distribution.
+\end{itemize}
+\vspace{0.4cm}
+The following elementary techniques have been considered to deal with the problem of the right-censoring of \textit{Survival time} values:
+\begin{itemize}
+\item Dropping censored values.
+\item Using the maximum uncensored value.
+\end{itemize}
+\end{frame}
+
+\section{Model Training and Selection}
+\frame{\sectionp}
+
+
+\begin{frame}
+\frametitle{Feature transformation and filtering}
+\begin{itemize}
+\item The data is scaled with feature scalers such as scikit-learn classes \texttt{StandardScaler}, \texttt{RobustScaler} or \texttt{QuantileTransformer}.
+\item The data can be filtered with an outlier detector such as Local Outlier Factor (LOF), implemented in scikit-learn with the class \texttt{LocalOutlierFactor}.
+\end{itemize}
+\end{frame}
+
+
+{\nologo
+\begin{frame}
+\frametitle{Feature engineering}
+\begin{itemize}
+\item New features can be added, such as a \textit{Therapy to visit} time $\Delta$.
+\item Groups of highly correlated features can be identified and removed, obtaining less correlated subsets.
+\end{itemize}
+\begin{figure}[h]
+  \centering
+  	\includegraphics[width=0.49\textwidth]{figures/featsubset1.pdf}
+  	\includegraphics[width=0.49\textwidth]{figures/featsubset2.pdf}
+\end{figure}
+\end{frame}}
+
+
+\begin{frame}
+\frametitle{Cross-validation and repeated holdout}
+The two main techniques for model selection are:
+\begin{itemize}
+\item \textbf{K-fold cross-validation}. The training/validation set is partitioned into $ K $ subsets. The model is trained $K$ times on each, merging the $ K - 1 $ remaining ones as a training set.
+
+\item \textbf{Holdout}. Training and validation sets are split only once. Referred to here as ``repeated holdout'' because of the many runs that are performed.
+\end{itemize}
+\end{frame}
+
+
+\begin{frame}
+\frametitle{The learning pipeline}
+The learning pipeline is structured as follows.
+\begin{enumerate}
+\item \texttt{load\_df\_dogs\_2016} and \texttt{load\_skl\_dogs\_2016} read the dataset and perform preprocessing corrections.
+\item \texttt{SVR\_gridsearch\_holdout} includes a number of steps:
+\begin{enumerate}
+\item Splitting of training/validation and test sets.
+\item Further split into training and validation sets.
+\item Optional outlier detection and scaling.
+\item A grid search is performed on the given \textit{parameter grid}, with the goal of finding the combination of hyperparameters leading to the best performing model.
+\item If more \textit{runs} have yet to be performed, repeat from step 2.2.
+\item Training and validation sets are joined again.
+\end{enumerate}
+\item The grid search can be repeated for a better performance estimation. The average of the test scores is reported as a model score.
+\end{enumerate}
+\end{frame}
+
+\section{Alternative SVR Models for Censored Datasets}
+\frame{\sectionp}
+
+\begin{frame}
+\frametitle{SVCR and SVRC}
+A few modifications to the support vector machine model have been proposed specifically to work on censored datasets.\\ In particular:
+\begin{itemize}
+\item \textbf{SVCR}, which consists in relaxing the right-sided constraint of the optimization problem on censored data points.
+\item \textbf{SVRC}, which applies different penalties to predictions higher and lower than the target values, while also distinguishing between censored and uncensored observations.
+\end{itemize}
+\end{frame}
+
+{\nologo
+\begin{frame}
+\frametitle{SVCR and SVRC}
+\begin{figure}[h]
+  	\centering
+  	\vspace{-1cm}
+  	\begin{tabular}{ccc}
+  		& (a) & (b) \\
+  		\fbox{\footnotesize $\delta_i = 0$} &
+  		\raisebox{-.5\height}{\includegraphics[width=0.4\textwidth]{figures/altloss2.pdf}} & 
+  		\raisebox{-.5\height}{\includegraphics[width=0.4\textwidth]{figures/altloss4.pdf}} \\
+  		\fbox{\footnotesize $\delta_i = 1$} &
+		\raisebox{-.5\height}{\includegraphics[width=0.4\textwidth]{figures/altloss1.pdf}} &
+		\raisebox{-.5\height}{\includegraphics[width=0.4\textwidth]{figures/altloss3.pdf}} \\
+  	\end{tabular}
+\end{figure}
+Loss functions as defined by (a) SVCR and (b) SVRC.
+\end{frame}}
+
+\begin{frame}
+\frametitle{Ranking-based alternative models}
+A different approach to support vector learning for survival analysis is that of reformulating the survival prediction problem as a ranking problem.\\
+This lets us introduce more models:
+\begin{itemize}
+\item \textbf{RankSVMC}, which consists in penalizing each comparable pair of data points for which the order of predicted indexes differs from the actual observed order.
+\item \textit{Van Belle et al.} \textbf{Model 1}, a modified simplification of RankSVMC.
+\item \textit{Van Belle et al.} \textbf{Model 2}, a combination of Model 1 and SVCR.
+\end{itemize}
+\end{frame}
+
+\section{A Custom SVR Implementation}
+\frame{\sectionp}
+
+\begin{frame}
+\frametitle{The \texttt{customsvr} module}
+The custom SVR models implemented for this thesis are collected in the \texttt{customsvr} python module. An abstract class \texttt{AbstractSVR} defines the attributes and methods shared by all SVR models in the library. Its methods are:
+\begin{itemize}
+\item \texttt{reset(self)},
+\item \texttt{k(self, a, b)},
+\item \texttt{fit(self, X, y)},
+\item \texttt{hypothesis\_f(self, x)},
+\item \texttt{predict(self, X)},
+\item \texttt{score(self, X, y, metric)},
+\item \texttt{scoreR2(self, X, y)}.
+\end{itemize}
+\texttt{AbstractCensSVR} adds features necessary for models specialized in censored data. This includes the methods:
+\begin{itemize}
+\item \texttt{comp(self, d, y, i, j)},
+\item \texttt{scoreCindex(self, X, y)}.
+\end{itemize}
+\end{frame}
+
+{\nologo
+\begin{frame}
+\frametitle{The \texttt{customsvr} module}
+Comparison between scikit-learn standard SVR and \texttt{customsvr}.
+\begin{figure}[h]
+  	\centering
+  	\vspace{-0.5cm}
+  	\begin{tabular}{ccc}
+  		\hspace{-1cm}
+  		\includegraphics[width=0.35\textwidth]{figures/custsvrcomp1.pdf} & 
+		\includegraphics[width=0.35\textwidth]{figures/custsvrcomp2.pdf} &
+		\includegraphics[width=0.35\textwidth]{figures/custsvrcomp3.pdf} \\
+		\hspace{-1cm}
+  		\includegraphics[width=0.35\textwidth]{figures/custsvrcomp4.pdf} &
+		\includegraphics[width=0.35\textwidth]{figures/custsvrcomp5.pdf} &
+		\includegraphics[width=0.35\textwidth]{figures/custsvrcomp6.pdf} \\
+  	\end{tabular}
+\end{figure}
+\end{frame}}
+
+\begin{frame}[fragile]
+\frametitle{Quadratic programming with Gurobi}
+The \texttt{customsvr} module makes use of the Gurobi optimization framework for constructing and solving models.\\
+Each class from the custom module implements its \texttt{fit} method using the Gurobi python API, also called \texttt{gurobipy}.
+\begin{lstlisting}
+self.model = gpy.Model('SVR')
+self.model.setParam('OutputFlag', self.verbose)
+
+l = len(X)
+a = self.model.addVars(l, 2, lb=0.0, ub=self.C, vtype=gpy.GRB.CONTINUOUS, name='a')
+self.model.update()
+
+fobj_kern = -(1/2) * gpy.quicksum((a[i,0] - a[i,1])*(a[j,0] - a[j,1])*self.k(X[i],X[j]) for i in range(l) for j in range(l))
+fobj_eps = -self.epsilon * gpy.quicksum(a[i,0] + a[i,1] for i in range(l))
+fobj_y = gpy.quicksum(y[i]*(a[i,0] - a[i,1]) for i in range(l))
+self.model.setObjective(fobj_kern + fobj_eps + fobj_y, gpy.GRB.MAXIMIZE)
+
+constr = gpy.quicksum(a[i,0] - a[i,1] for i in range(l))
+self.model.addConstr(constr, gpy.GRB.EQUAL, 0)
+
+self.model.optimize()
+if self.model.Status != gpy.GRB.OPTIMAL:
+	raise ValueError('optimal solution not found!')
+\end{lstlisting}
+\end{frame}
+
+\section{Results and Discussion}
+\frame{\sectionp}
+
+{\nologo
+\begin{frame}
+\frametitle{First SVR experiments}
+{\scriptsize Experiment results on standard SVR model with repeated holdout, maximizing $R^2$ score.}
+\begin{scriptsize}
+\begin{center}
+\vspace{-0.45cm}
+ \begin{tabular}{ |m{5cm}|c|c|c|c| }
+\hline
+\multicolumn{1}{|c|}{\multirow{2}{*}{Pipeline settings}} & \multicolumn{2}{|c|}{$R^2$} & \multicolumn{2}{|c|}{c-index} \\ \cline{2-5}
+& mean & sd & mean & sd \\ \hline
+Drop NA, max censoring, StandardScaler & -1.0915 & 0.7466 & 0.6440 & 0.1266 \\ \hline
+Mean NA, max censoring, StandardScaler & -1.6657 & 2.0754 & 0.6421 & 0.1193 \\ \hline
+Normal generated NA, drop censoring, StandardScaler & -3.2109 & 3.5736 & 0.6133 & 0.1739 \\ \hline
+Normal generated NA, max censoring, StandardScaler & -0.7714 & 0.9389 & 0.7005 & 0.0934 \\ \hline
+Normal generated NA, max censoring, QuantileTranformer scaler & -0.7953 & 0.6020 & 0.5413 & 0.0680 \\ \hline
+Normal generated NA, max censoring, StandardScaler, LOF outlier detector & -10.7221 & 12.3847 & 0.4537 & 0.1413 \\ \hline
+Removing \textit{IP Gravity}, \textit{FE \%}, \textit{EDVI}, \textit{ESVI}, \textit{Allo sist}. Normal NA, max censoring, StandardScaler & -3.2217 & 6.0365 & 0.5750 & 0.0842 \\ \hline
+Removing \textit{IP Gravity}, \textit{FS \%}, \textit{ESVI}, \textit{Allo diast} e \textit{Allo sist}. Normal NA, max censoring, StandardScaler & -1.4231 & 1.7689 & 0.5780 & 0.1549 \\ \hline
+\end{tabular}
+\end{center} 
+\end{scriptsize}
+\end{frame}}
+
+\begin{frame}
+\frametitle{Alternative models experiments}
+Experiment results on alternative SVR models with repeated holdout, maximizing c-index score.
+\begin{footnotesize}
+\begin{center}
+ \begin{tabular}{ |m{5cm}|c|c|c|c| }
+\hline
+\multirow{2}{=}{SVR model with normal generated NA and StandardScaler} & \multicolumn{2}{|c|}{c-index} & \multicolumn{2}{|c|}{$R^2$} \\ \cline{2-5}
+& mean & sd & mean & sd \\ \hline
+Standard SVR with max censoring & 0.5747 & 0.1593 & -1.8245 & 1.2600 \\ \hline
+SVCR & 0.6956 & 0.0699 & -1.8485 & 2.1166 \\ \hline
+SVRC & 0.5368 & 0.1162 & -1.3478 & 1.5259 \\ \hline
+RankSVMC (simplified) & 0.5855 & 0.1478 & - & - \\ \hline
+Van Belle Model 1 & 0.5329 & 0.1100 & - & - \\ \hline
+Van Belle Model 2 & 0.5233 & 0.2321 & -0.5028 & 0.6052 \\ \hline
+\end{tabular}
+\end{center} 
+\end{footnotesize}
+\end{frame}
+
+\begin{frame}
+\frametitle{Conclusions}
+\vspace{-1cm}
+\begin{itemize}
+\item The ``standard'' Support Vector Regression approach proved insufficient as it was not designed to work with censored data. For this reason, a series of alternative SVR models were explored and implemented.
+\item The dataset in question is not of sufficient size and quality for precise predictions of survival times to be made.
+\item The use of SVR models for ranking observations and establishing risk groups was a success. The best performing model was \textbf{SVCR}, which introduces a modified loss function for censored targets.
+\item The introduction of ranking-based methods such as \textbf{RankSVMC} and \textbf{Model 1}/\textbf{2} did not increase performance.
+\end{itemize}
+\end{frame}
+
+\end{document}

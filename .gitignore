@@ -12,3 +12,6 @@ env/
 *.bbl
 *.blg
 *.dvi
+*.nav
+*.snm
+*.vrb
