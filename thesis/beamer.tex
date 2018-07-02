@@ -25,8 +25,8 @@
 \newcommand*{\sectionp}{\usebeamertemplate*{section p}}
 
 \title{SV-based regression techniques for survival analysis: a case study on veterinary data}
-\author[Elvis Nava]{{\large Elvis Nava}\\[1ex]{\footnotesize \emph{Supervised by:}\\ Prof.\ Dario Malchiodi\\[-1ex] Prof.ssa Anna Maria Zanaboni}}
-\date{Luglio 2018}
+\author[Elvis Nava]{{\large Elvis Nava}\\[1ex]{\footnotesize \emph{Relatori:}\\ Prof.\ Dario Malchiodi\\[-1ex] Prof.ssa Anna Maria Zanaboni}}
+\date{10 Luglio 2018}
 \institute[Unimi]{{\footnotesize Università degli Studi di Milano}\\[1ex] Facoltà di Scienze e Tecnologie\\ Corso di Laurea in Informatica}
 \logo{\includegraphics[width=15mm]{unimi.jpg}}
 \newcommand{\nologo}{\setbeamertemplate{logo}{}}
@@ -56,25 +56,25 @@
 \end{frame}
 
 \begin{frame}
-\frametitle{Table of Contents}
+\frametitle{Indice}
 \tableofcontents
 \end{frame}
 
-\section{Support Vector Machines for Regression}
+\section{Support Vector Machine per la Regressione}
 \frame{\sectionp}
 
 \begin{frame}
-\frametitle{Linear Support Vector Regression}
+\frametitle{Support Vector Regression Lineare}
 \begin{itemize}
-\item From training data $ \mathbf{X} = \lbrace (x_{1},y_{1}),\ldots,(x_{\ell},y_{\ell})\rbrace \subset \mathcal{X} \times \mathbb{R} $, find the best $ f $ taking the form:
+\item A partire dai dati $ \mathbf{X} = \lbrace (x_{1},y_{1}),\ldots,(x_{\ell},y_{\ell})\rbrace \subset \mathcal{X} \times \mathbb{R} $, trova la migliore funzione $ f $ che abbia la forma:
 \begin{align*}
 f(x) = \langle w,x \rangle + b \ \text{with} \ w \in \mathcal{X}, b \in \mathbb{R} \text{.}
 \end{align*}
-\item SVR training corresponds to the convex optimization problem:
+\item Il training di SVR corrisponde al problema di ottimizzazione convessa:
 \begin{align*}
 \begin{split}
-\text{minimize} &\ \dfrac{1}{2}\| w \|^2 + C\sum_{i=1}^{\ell}(\xi_{i} + \xi_{i}^{*}) \\
-\text{subject to} &\ \begin{cases}
+\text{minimizza} &\ \dfrac{1}{2}\| w \|^2 + C\sum_{i=1}^{\ell}(\xi_{i} + \xi_{i}^{*}) \\
+\text{soggetto a} &\ \begin{cases}
 y_{i} - \langle w,x_{i} \rangle - b &\leq \varepsilon + \xi_{i} \text{,}\\
 \langle w,x_{i} \rangle + b - y_{i} &\leq \varepsilon + \xi_{i}^{*} \text{,}\\
 \xi_{i}, \xi_{i}^{*} &\geq 0 \text{.}
@@ -86,13 +86,13 @@ y_{i} - \langle w,x_{i} \rangle - b &\leq \varepsilon + \xi_{i} \text{,}\\
 
 {\nologo
 \begin{frame}
-\frametitle{Linear Support Vector Regression}
+\frametitle{Support Vector Regression Lineare}
 \begin{itemize}
-\item SVR uses an $ \varepsilon $-insensitive loss function:
+\item La SVR utilizza una ``$ \varepsilon $-insensitive loss function'':
 \begin{align*}
 c(x,y,f(x)) = \vert y - f(x) \vert_{\varepsilon} = \begin{cases}
-0 &\ \text{if } \vert y - f(x) \vert \leq \varepsilon \text{,}\\
-\vert y - f(x) \vert - \varepsilon &\ \text{otherwise} \text{.}
+0 &\ \text{se } \vert y - f(x) \vert \leq \varepsilon \text{,}\\
+\vert y - f(x) \vert - \varepsilon &\ \text{altrimenti} \text{.}
 \end{cases}
 \end{align*}
 \end{itemize}
@@ -104,36 +104,36 @@ c(x,y,f(x)) = \vert y - f(x) \vert_{\varepsilon} = \begin{cases}
 \end{frame}}
 
 \begin{frame}
-\frametitle{Linear Support Vector Regression}
+\frametitle{Support Vector Regression Lineare}
 \begin{itemize}
-\item The optimization is performed on the Lagrangian dual:
+\item L'ottimizzazione è eseguita sul duale Lagrangiano:
 \begin{scriptsize}
 \begin{align*}
 \begin{aligned}
-\text{maximize} &\quad
+\text{massimizza} &\quad
 -\dfrac{1}{2}\sum_{i,j=1}^{\ell}(\alpha_{i} - \alpha_{i}^{*})(\alpha_{j} - \alpha_{j}^{*})\langle x_{i},x_{j} \rangle -\varepsilon\sum_{i=1}^{\ell}(\alpha_{i} + \alpha_{i}^{*}) + \sum_{i=1}^{\ell}y_{i}(\alpha_{i}-\alpha_{i}^{*}) \\
-\text{subject to} &\quad \left\{\begin{aligned}
+\text{soggetto a} &\quad \left\{\begin{aligned}
 &\sum_{i=1}^{\ell}(\alpha_{i} - \alpha_{i}^{*}) = 0 \text{,}\\
 &\alpha_{i},\alpha_{i}^{*} \in [0,C] \text{.}
 \end{aligned}\right.
 \end{aligned}
 \end{align*}
 \end{scriptsize}
-\item $ f $ can be written as a \textit{support vector expansion}
+\item $ f $ può essere scritta sottoforma di \textit{support vector expansion}
 \begin{align*}
 f(x) = \sum_{i=1}^{\ell}(\alpha_{i}-\alpha_{i}^{*})\langle x_{i},x\rangle + b \text{.}
 \end{align*}
-\item Each $ x_{i} $ for which $ (\alpha_{i}-\alpha_{i}^{*}) \neq 0 $ is called a \textit{support vector}.
+\item Ogni $ x_{i} $ per cui $ (\alpha_{i}-\alpha_{i}^{*}) \neq 0 $ è detto \textit{support vector}.
 \end{itemize}
 \end{frame}
 
 
 \begin{frame}
-\frametitle{Nonlinearity and kernels}
+\frametitle{Nonlinearità e kernel}
 \begin{itemize}
-\item The training points $ x_{i} $ can be preprocessed using a nonlinear map $ \Phi : \mathcal{X} \rightarrow \mathcal{F} $ into a higher-dimensional feature space $ \mathcal{F} $.
-\item If a \textit{kernel} function $ k $ is known such that $ k(x_{i},x_{j}) = \langle\Phi (x_{i}),\Phi (x_{j})\rangle $, then it can be used instead of computing $ \Phi $ directly.
-\item $k$ can be substituted into the Lagrangian dual and into $f$
+\item I punti di training $ x_{i} $ possono essere preprocessati con una mappa nonlineare $ \Phi : \mathcal{X} \rightarrow \mathcal{F} $ verso uno spazio delle feature sovradimensionato $ \mathcal{F} $.
+\item Se una funzione $ k $ (detta \textit{kernel}) è conosciuta tale che $ k(x_{i},x_{j}) = \langle\Phi (x_{i}),\Phi (x_{j})\rangle $, allora può essere usata al posto di computare $ \Phi $ direttamente.
+\item $k$ può essere sostituita nel duale Lagrangiano e in $f$
 \begin{align*}
 f(x) = \sum_{i=1}^{\ell}(\alpha_{i}-\alpha_{i}^{*})k(x_{i},x) + b \text{.}
 \end{align*}
@@ -141,27 +141,27 @@ f(x) = \sum_{i=1}^{\ell}(\alpha_{i}-\alpha_{i}^{*})k(x_{i},x) + b \text{.}
 \end{frame}
 
 \begin{frame}
-\frametitle{Nonlinearity and kernels}
-Examples of admissible kernels:
+\frametitle{Nonlinearità e kernel}
+Esempi di kernel ammissibili:
 \begin{itemize}
-\item The polynomial kernel \begin{align*}
+\item Il kernel polinomiale \begin{align*}
 k(x_{i},x_{j}) = (\gamma\langle x_{i},x_{j} \rangle + c)^{d}
 \end{align*}
-with $ d \in \mathbb{N} $, $ \gamma > 0 $ and $ c \geq 0 $.
-\item The gaussian kernel \begin{align*}
+con $ d \in \mathbb{N} $, $ \gamma > 0 $ e $ c \geq 0 $.
+\item Il kernel gaussiano \begin{align*}
 k(x_{i},x_{j}) = e^{-\dfrac{\| x_{i}-x_{j} \|^{2}}{2\gamma^{2}}}
 \end{align*}
-with $ \gamma > 0 $.
+con $ \gamma > 0 $.
 \end{itemize}
 \end{frame}
 
-\section{Dataset Preprocessing and Exploration}
+\section{Preprocessing ed Esplorazione del Dataset}
 \frame{\sectionp}
 
 {\nologo
 \begin{frame}
-\frametitle{The veterinary dataset ($ 161 \times 30$)}
-Preliminary operations: a consistency check on the dataset, a correlation heatmap of the features, a series of joints plots with \textit{Survival time}.
+\frametitle{Il dataset veterinario ($ 161 \times 30$)}
+Operazioni preliminari: un controllo di coerenza, una heatmap di correlazione delle feature, una serie di joint plot con \textit{Survival time}.
 \begin{figure}[h]
   \vspace{-0.2cm}
   \centering
@@ -171,30 +171,30 @@ Preliminary operations: a consistency check on the dataset, a correlation heatma
 \end{frame}}
 
 \begin{frame}
-\frametitle{Handling missing and censored data}
-The following policies were experimented with in order to deal with NA values:
+\frametitle{Gestire dati mancanti o censurati}
+Le seguenti strategie sono state sperimentate per la gestione dei valori NA:
 \begin{itemize}
-\item Dropping NA values.
-\item Using the mean value.
-\item Sampling from a normal distribution.
+\item Eliminazione dei valori NA.
+\item Utilizzo del valore medio.
+\item Generazione casuale da una distribuzione normale.
 \end{itemize}
 \vspace{0.4cm}
-The following elementary techniques have been considered to deal with the problem of the right-censoring of \textit{Survival time} values:
+Le seguenti tecniche elementari sono state considerate per la gestione dei valori di \textit{Survival time} censurati verso destra:
 \begin{itemize}
-\item Dropping censored values.
-\item Using the maximum uncensored value.
+\item Eliminazione dei valori censurati.
+\item Utilizzo del massimo valore non censurato.
 \end{itemize}
 \end{frame}
 
-\section{Model Training and Selection}
+\section{Training e Selezione dei Modelli}
 \frame{\sectionp}
 
 {\nologo
 \begin{frame}
-\frametitle{Feature trasformation, filtering and engineering}
+\frametitle{Trasformazione, filtraggio ed engineering di feature}
 \begin{itemize}
-\item The data is scaled with feature scalers and optionally filtered for outliers (LOF).
-\item New features can be added (a \textit{Therapy to visit} time $\Delta$) and highly correlated features can be identified and removed.
+\item I dati sono scalati con opportuni feature scaler e opzionalmente filtrati per eliminare outlier (LOF).
+\item Possono essere aggiunte nuove feature (un $\Delta$ temporale \textit{Therapy to visit}) e possono essere identificati e rimossi subset di feature altamente correlate.
 \end{itemize}
 \begin{figure}[h]
   \centering
@@ -204,23 +204,23 @@ The following elementary techniques have been considered to deal with the proble
 \end{frame}}
 
 \begin{frame}
-\frametitle{The holdout learning pipeline}
-\vspace{-0.2cm}
+\frametitle{La pipeline di apprendimento con holdout ripetuto}
+\vspace{-0.7cm}
 \begin{center}
 \tikzstyle{block} = [rectangle, draw, fill=blue!20, text width=15em, text centered]
 \tikzstyle{line} = [draw, -latex']
-\tikzstyle{cloud} = [draw, rectangle, fill=blue!20, text width=3.5em, node distance=4.5cm, text centered]
+\tikzstyle{cloud} = [draw, ellipse, fill=blue!20, text width=3.9em, node distance=4.5cm, text centered]
 \begin{tikzpicture}[node distance=1cm, auto]
-	\node [block] (load) {Reading and preprocessing};
-	\node [block, below of=load] (split1) {Training/Test split};
-	\node [block, below of=split1] (split2) {Training/Validation split};
-	\node [block, below of=split2] (scaling) {Scaling and (optional) LOF};
-	\node [block, below of=scaling] (gridsearch) {Grid search on param grid};
-	\node [cloud, left of=gridsearch] (hruns) {holdout runs left};
-	\node [block, below of=gridsearch] (join) {Training/Validation rejoin};
-	\node [block, below of=join] (report) {Test score returned};
-	\node [cloud, right of=scaling] (oruns) {overall runs left};
-	\node [block, below of=report] (avg) {Average test scores reported};
+	\node [block] (load) {Lettura e preprocessing};
+	\node [block, below of=load] (split1) {Split di Training/Test set};
+	\node [block, below of=split1] (split2) {Split di Training/Validation set};
+	\node [block, below of=split2] (scaling) {Scaling e (opzionale) LOF};
+	\node [block, below of=scaling] (gridsearch) {Grid search sui parametri};
+	\node [cloud, left of=gridsearch] (hruns) {ripetizione holdout};
+	\node [block, below of=gridsearch] (join) {Join di Training/Validation set};
+	\node [block, below of=join] (report) {Ottenuto punteggio di test};
+	\node [cloud, right of=scaling] (oruns) {ripetizione pipeline};
+	\node [block, below of=report] (avg) {Ottenuta media dei test};
 	\path [line] (load) -- (split1);
 	\path [line] (split1) -- (split2);
 	\path [line] (split2) -- (scaling);
@@ -236,13 +236,13 @@ The following elementary techniques have been considered to deal with the proble
 \end{center}
 \end{frame}
 
-\section{Alternative SVR Models for Censored Datasets}
+\section{Modelli SVR Alternativi per Dataset Censurati}
 \frame{\sectionp}
 
 {\nologo
 \begin{frame}
-\frametitle{SVCR and SVRC}
-Modifications to the support vector machine model specifically proposed for working on censored datasets:
+\frametitle{SVCR ed SVRC}
+Modifiche alla ``loss function'' del modello SVR proposte specificamente per gestire dataset censurati:
 \begin{figure}[h]
   	\centering
   	\vspace{-0.5cm}
@@ -259,33 +259,33 @@ Modifications to the support vector machine model specifically proposed for work
 \end{frame}}
 
 \begin{frame}
-\frametitle{Ranking-based alternative models}
-A different approach to support vector learning for survival analysis is that of reformulating the survival prediction problem as a ranking problem.\\
-This lets us introduce more models:
+\frametitle{Modelli alternativi basati sul ranking}
+Un approccio differente è quello di riformulare il problema di predizione dei tempi di sopravvivenza come un problema di ranking.\\
+Ciò ci permette di introdurre altri modelli:
 \begin{itemize}
-\item \textbf{RankSVMC}, which consists in penalizing each comparable pair of data points for which the order of predicted indexes differs from the actual observed order.
-\item \textit{Van Belle et al.} \textbf{Model 1}, a modified simplification of RankSVMC.
-\item \textit{Van Belle et al.} \textbf{Model 2}, a combination of Model 1 and SVCR.
+\item \textbf{RankSVMC}, che penalizza ogni paio di punti comparabile per cui l'ordine di predizione è scorretto.
+\item \textit{Van Belle et al.} \textbf{Model 1}, una semplificazione di RankSVMC.
+\item \textit{Van Belle et al.} \textbf{Model 2}, una combinazione del precedente Model 1 e di SVCR.
 \end{itemize}
 \end{frame}
 
-\section{A Custom SVR Implementation}
+\section{Un'Implementazione Custom di SVR}
 \frame{\sectionp}
 
 \begin{frame}
-\frametitle{Technologies used}
+\frametitle{Tecnologie utilizzate}
 \begin{itemize}
-\item All the code was written in python, using libraries \texttt{numpy}, \texttt{pandas} and \texttt{scikit-learn}.
-\item The dataset checks, explorations and the experiments were conducted with \texttt{jupyter} notebooks, rendering figures with \texttt{matplotlib} and \texttt{seaborn}.
-\item The alternative SVR models have been implemented in the \texttt{customsvr} python module.
-\item The Gurobi optimization framework was used for constructing and solving models. \texttt{customsvr} uses the Gurobi python API, also called \texttt{gurobipy}.
+\item Il codice è stato scritto in python, usando le librerie \texttt{numpy}, \texttt{pandas} e \texttt{scikit-learn}.
+\item I controlli sul dataset, le esplorazioni e gli esperimenti sono stati condotti con i \texttt{jupyter} notebook, producendo le figure con \texttt{matplotlib} e \texttt{seaborn}.
+\item I modelli SVR alternativi sono stati implementati nel modulo python \texttt{customsvr}.
+\item Per costruire e risolvere i modelli è stato usato il framework di ottimizzazione Gurobi, tramite la python API \texttt{gurobipy}.
 \end{itemize}
 \end{frame}
 
 {\nologo
 \begin{frame}
-\frametitle{The \texttt{customsvr} module}
-Comparison between scikit-learn standard SVR and \texttt{customsvr}.
+\frametitle{Il modulo \texttt{customsvr}}
+Comparazione tra la SVR standard di scikit-learn e \texttt{customsvr}.
 \begin{figure}[h]
   	\centering
   	\vspace{-0.5cm}
@@ -302,21 +302,21 @@ Comparison between scikit-learn standard SVR and \texttt{customsvr}.
 \end{figure}
 \end{frame}}
 
-\section{Results and Discussion}
+\section{Risultati e Discussione}
 \frame{\sectionp}
 
 {\nologo
 \begin{frame}
-\frametitle{First SVR experiments}
-{\scriptsize Experiment results on standard SVR model with repeated holdout, maximizing $R^2$ score.}
+\frametitle{Primi esperimenti su SVR}
+{\scriptsize Risultati degli esperimenti su SVR standard con holdout ripetuto, massimizzando $R^2$.}
 \begin{scriptsize}
 \begin{center}
 \vspace{-0.45cm}
 \newcolumntype{g}{>{\columncolor{cyan!20}}c}
  \begin{tabular}{ |m{5cm}|g|c|c|c| }
 \hline
-\multicolumn{1}{|c|}{\multirow{2}{*}{Pipeline settings}} & \multicolumn{2}{|c|}{$R^2$} & \multicolumn{2}{|c|}{c-index} \\ \cline{2-5}
-\rowcolor{white} & mean & sd & mean & sd \\ \hline
+\multicolumn{1}{|c|}{\multirow{2}{*}{Opzioni di pipeline}} & \multicolumn{2}{|c|}{$R^2$} & \multicolumn{2}{|c|}{c-index} \\ \cline{2-5}
+& media & sd & media & sd \\ \hline
 Drop NA, max censoring, StandardScaler & -1.0915 & 0.7466 & 0.6440 & 0.1266 \\ \hline
 Mean NA, max censoring, StandardScaler & -1.6657 & 2.0754 & 0.6421 & 0.1193 \\ \hline
 Normal generated NA, drop censoring, StandardScaler & -3.2109 & 3.5736 & 0.6133 & 0.1739 \\ \hline
@@ -331,15 +331,15 @@ Removing \textit{IP Gravity}, \textit{FS \%}, \textit{ESVI}, \textit{Allo diast}
 \end{frame}}
 
 \begin{frame}
-\frametitle{Alternative models experiments}
-Experiment results on alternative SVR models with repeated holdout, maximizing c-index score.
+\frametitle{Esperimenti su modelli alternativi}
+Risultati degli esperimenti su modelli SVR alternativi con holdout ripetuto, massimizzando c-index.
 \begin{footnotesize}
 \begin{center}
 \newcolumntype{g}{>{\columncolor{yellow!40}}c}
  \begin{tabular}{ |m{5cm}|g|c|c|c| }
 \hline
 \multirow{2}{=}{SVR model with normal generated NA and StandardScaler} & \multicolumn{2}{|c|}{c-index} & \multicolumn{2}{|c|}{$R^2$} \\ \cline{2-5}
-\rowcolor{white} & mean & sd & mean & sd \\ \hline
+& media & sd & media & sd \\ \hline
 Standard SVR with max censoring & 0.5747 & 0.1593 & -1.8245 & 1.2600 \\ \hline
 \rowcolor{yellow} SVCR & 0.6956 & 0.0699 & -1.8485 & 2.1166 \\ \hline
 SVRC & 0.5368 & 0.1162 & -1.3478 & 1.5259 \\ \hline
@@ -352,13 +352,13 @@ Van Belle Model 2 & 0.5233 & 0.2321 & -0.5028 & 0.6052 \\ \hline
 \end{frame}
 
 \begin{frame}
-\frametitle{Conclusions}
+\frametitle{Conclusioni}
 \vspace{-1cm}
 \begin{itemize}
-\item The ``standard'' Support Vector Regression approach proved insufficient as it was not designed to work with censored data. For this reason, a series of alternative SVR models were explored and implemented.
-\item The dataset in question is not of sufficient size and quality for precise predictions of survival times to be made.
-\item The use of SVR models for ranking observations and establishing risk groups was a success. The best performing model was \textbf{SVCR}, which introduces a modified loss function for censored targets.
-\item The introduction of ranking-based methods such as \textbf{RankSVMC} and \textbf{Model 1}/\textbf{2} did not increase performance.
+\item L'approccio Support Vector Regression ``standard'' si è dimostrato insufficiente, non essendo stato pensato per funzionare con dati censurati. Per questo motivo, sono stati considerati e implementati diversi modelli SVR alternativi.
+\item Il dataset in questione non è di dimensione e qualità sufficiente per ottenere predizioni precise sui tempi di sopravvivenza.
+\item L'uso di modelli SVR per il ranking delle osservazioni e la definizione di gruppi di rischio si è rivelato un successo. Il modello più performante è \textbf{SVCR}, che introduce una loss function modificata.
+\item L'introduzione di modelli che ottimizzano il ranking come \textbf{RankSVMC} e \textbf{Model 1}/\textbf{2} non ha aumentato la performance.
 \end{itemize}
 \end{frame}
 

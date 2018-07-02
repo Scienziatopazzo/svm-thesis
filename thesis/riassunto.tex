@@ -1,3 +1,11 @@
+\documentclass[12pt,a4paper]{report}
+
+\usepackage[a-1b,latxmp]{pdfx}
+\usepackage[utf8]{inputenc}
+
+\pagenumbering{gobble}
+
+\begin{document}
 L'oggetto di questo elaborato è l'uso di tecniche di machine learning, in particolare la regressione basata su Support Vector Machine, nell'analisi e nella predizione di tempi di sopravvivenza in ambito veterinario. Interpretando il tempo di sopravvivenza come una variabile dipendente da un insieme di feature, l'obiettivo diventa la stima di una funzione e la minimizzazione del rischio a essa associato. La Support Vector Regression (SVR) traduce ciò in un problema di ottimizzazione convessa.
 
 Le tecniche in questione sono applicate a un dataset veterinario di cani, con l'obiettivo di modellare il tempo di sopravvivenza a partire dai dettagli delle visite mediche. Per farlo, il dataset deve prima essere processato adeguatamente effettuando controlli di coerenza, occupandosi dei dati mancanti, e trasformando/selezionando le feature. Inoltre, i modelli di machine learning utilizzati presentano iperparametri che devono essere selezionati in quella che è chiamata model selection, utilizzando tecniche come l'holdout e la cross-validation.
@@ -5,3 +13,4 @@ Le tecniche in questione sono applicate a un dataset veterinario di cani, con l'
 Come nel caso di molti altri dataset simili, la censura a destra dei tempi di sopravvivenza non può essere gestita correttamente usando un modello SVR "standard", perciò alcuni modelli alternativi sono stati presi in considerazione. Questi includono modelli di regressione con vincoli modificati per input censurati e ri-formulazioni dell'analisi di sopravvivenza come un problema di ranking. Il lavoro ha previsto l'implementazione come modulo python personalizzato di modelli SVR che supportano dati censurati.
 
 L'elaborato comincia nel Capitolo 1 con una panoramica sulla stima di funzioni e sulla minimizzazione del rischio, seguita da una descrizione della regressione basata su Support Vector Machine nei casi lineare e non-lineare. Nel Capitolo 2 il dataset veterinario analizzato in questa tesi è prima presentato, poi esplorato dopo una serie di step di preprocessing, applicati al fine di garantire la coerenza dei dati e per gestire problemi come i dati mancanti o quelli censurati. Il Capitolo 3 riguarda la model selection, che consiste nella selezione degli iperparametri dell'algoritmo di SVR. Viene considerata anche la "feature engineering" come metodo per ottenere un modello più performante. Nel Capitolo 4 un certo numero di modelli SVR alternativi sono descritti e derivati come problemi di ottimizzazione, risolvibili tramite programmazione quadratica sul duale Lagrangiano. Il Capitolo 5 dettaglia l'implementazione di un modulo python SVR personalizzato. Infine, il Capitolo 6 riguarda i risultati degli esperimenti condotti applicando le diverse tecniche sul dataset con diverse combinazioni di opzioni per i modelli e per la pipeline di apprendimento.
+\end{document}
