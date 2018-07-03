@@ -66,18 +66,18 @@
 \begin{frame}
 \frametitle{Support Vector Regression Lineare}
 \begin{itemize}
-\item A partire dai dati $ \mathbf{X} = \lbrace (x_{1},y_{1}),\ldots,(x_{\ell},y_{\ell})\rbrace \subset \mathcal{X} \times \mathbb{R} $, trova la migliore funzione $ f $ che abbia la forma:
+\item A partire dai dati $ \mathbf{X} = \lbrace (x_{1},y_{1}),\ldots,(x_{\ell},y_{\ell})\rbrace \subset \mathcal{X} \times \mathbb{R} $, trova la migliore funzione $ f $ che abbia la forma
 \begin{align*}
-f(x) = \langle w,x \rangle + b \ \text{with} \ w \in \mathcal{X}, b \in \mathbb{R} \text{.}
+f(x) = \langle w,x \rangle + b \ \text{with} \ w \in \mathcal{X}, b \in \mathbb{R}
 \end{align*}
-\item Il training di SVR corrisponde al problema di ottimizzazione convessa:
+\item Il training di SVR corrisponde al problema di ottimizzazione convessa
 \begin{align*}
 \begin{split}
 \text{minimizza} &\ \dfrac{1}{2}\| w \|^2 + C\sum_{i=1}^{\ell}(\xi_{i} + \xi_{i}^{*}) \\
 \text{soggetto a} &\ \begin{cases}
-y_{i} - \langle w,x_{i} \rangle - b &\leq \varepsilon + \xi_{i} \text{,}\\
-\langle w,x_{i} \rangle + b - y_{i} &\leq \varepsilon + \xi_{i}^{*} \text{,}\\
-\xi_{i}, \xi_{i}^{*} &\geq 0 \text{.}
+y_{i} - \langle w,x_{i} \rangle - b &\leq \varepsilon + \xi_{i}\\
+\langle w,x_{i} \rangle + b - y_{i} &\leq \varepsilon + \xi_{i}^{*}\\
+\xi_{i}, \xi_{i}^{*} &\geq 0
 \end{cases}
 \end{split}
 \end{align*}
@@ -88,11 +88,11 @@ y_{i} - \langle w,x_{i} \rangle - b &\leq \varepsilon + \xi_{i} \text{,}\\
 \begin{frame}
 \frametitle{Support Vector Regression Lineare}
 \begin{itemize}
-\item La SVR utilizza una ``$ \varepsilon $-insensitive loss function'':
+\item La SVR utilizza una ``$ \varepsilon $-insensitive loss function''
 \begin{align*}
 c(x,y,f(x)) = \vert y - f(x) \vert_{\varepsilon} = \begin{cases}
-0 &\ \text{se } \vert y - f(x) \vert \leq \varepsilon \text{,}\\
-\vert y - f(x) \vert - \varepsilon &\ \text{altrimenti} \text{.}
+0 &\ \text{se } \vert y - f(x) \vert \leq \varepsilon\\
+\vert y - f(x) \vert - \varepsilon &\ \text{altrimenti}
 \end{cases}
 \end{align*}
 \end{itemize}
@@ -106,24 +106,24 @@ c(x,y,f(x)) = \vert y - f(x) \vert_{\varepsilon} = \begin{cases}
 \begin{frame}
 \frametitle{Support Vector Regression Lineare}
 \begin{itemize}
-\item L'ottimizzazione è eseguita sul duale Lagrangiano:
+\item L'ottimizzazione è eseguita sul duale Lagrangiano
 \begin{scriptsize}
 \begin{align*}
 \begin{aligned}
 \text{massimizza} &\quad
 -\dfrac{1}{2}\sum_{i,j=1}^{\ell}(\alpha_{i} - \alpha_{i}^{*})(\alpha_{j} - \alpha_{j}^{*})\langle x_{i},x_{j} \rangle -\varepsilon\sum_{i=1}^{\ell}(\alpha_{i} + \alpha_{i}^{*}) + \sum_{i=1}^{\ell}y_{i}(\alpha_{i}-\alpha_{i}^{*}) \\
 \text{soggetto a} &\quad \left\{\begin{aligned}
-&\sum_{i=1}^{\ell}(\alpha_{i} - \alpha_{i}^{*}) = 0 \text{,}\\
-&\alpha_{i},\alpha_{i}^{*} \in [0,C] \text{.}
+&\sum_{i=1}^{\ell}(\alpha_{i} - \alpha_{i}^{*}) = 0\\
+&\alpha_{i},\alpha_{i}^{*} \in [0,C]
 \end{aligned}\right.
 \end{aligned}
 \end{align*}
 \end{scriptsize}
 \item $ f $ può essere scritta sottoforma di \textit{support vector expansion}
 \begin{align*}
-f(x) = \sum_{i=1}^{\ell}(\alpha_{i}-\alpha_{i}^{*})\langle x_{i},x\rangle + b \text{.}
+f(x) = \sum_{i=1}^{\ell}(\alpha_{i}-\alpha_{i}^{*})\langle x_{i},x\rangle + b
 \end{align*}
-\item Ogni $ x_{i} $ per cui $ (\alpha_{i}-\alpha_{i}^{*}) \neq 0 $ è detto \textit{support vector}.
+\item Ogni $ x_{i} $ per cui $ (\alpha_{i}-\alpha_{i}^{*}) \neq 0 $ è detto \textit{support vector}
 \end{itemize}
 \end{frame}
 
@@ -131,11 +131,11 @@ f(x) = \sum_{i=1}^{\ell}(\alpha_{i}-\alpha_{i}^{*})\langle x_{i},x\rangle + b \t
 \begin{frame}
 \frametitle{Nonlinearità e kernel}
 \begin{itemize}
-\item I punti di training $ x_{i} $ possono essere preprocessati con una mappa nonlineare $ \Phi : \mathcal{X} \rightarrow \mathcal{F} $ verso uno spazio delle feature sovradimensionato $ \mathcal{F} $.
-\item Se una funzione $ k $ (detta \textit{kernel}) è conosciuta tale che $ k(x_{i},x_{j}) = \langle\Phi (x_{i}),\Phi (x_{j})\rangle $, allora può essere usata al posto di computare $ \Phi $ direttamente.
+\item I punti di training $ x_{i} $ possono essere preelaborati con una mappa nonlineare $ \Phi : \mathcal{X} \rightarrow \mathcal{F} $ verso uno spazio delle feature sovradimensionato
+\item Se una funzione $ k $ (detta \textit{kernel}) è conosciuta tale che $ k(x_{i},x_{j}) = \langle\Phi (x_{i}),\Phi (x_{j})\rangle $, allora può essere usata al posto di computare $ \Phi $ direttamente
 \item $k$ può essere sostituita nel duale Lagrangiano e in $f$
 \begin{align*}
-f(x) = \sum_{i=1}^{\ell}(\alpha_{i}-\alpha_{i}^{*})k(x_{i},x) + b \text{.}
+f(x) = \sum_{i=1}^{\ell}(\alpha_{i}-\alpha_{i}^{*})k(x_{i},x) + b
 \end{align*}
 \end{itemize}
 \end{frame}
@@ -161,7 +161,7 @@ con $ \gamma > 0 $.
 {\nologo
 \begin{frame}
 \frametitle{Il dataset veterinario ($ 161 \times 30$)}
-Operazioni preliminari: un controllo di coerenza, una heatmap di correlazione delle feature, una serie di joint plot con \textit{Survival time}.
+Operazioni preliminari: un controllo di coerenza, una heatmap di correlazione delle feature, una serie di diagrammi di dispersione con \textit{Survival time}.
 \begin{figure}[h]
   \vspace{-0.2cm}
   \centering
@@ -172,17 +172,17 @@ Operazioni preliminari: un controllo di coerenza, una heatmap di correlazione de
 
 \begin{frame}
 \frametitle{Gestire dati mancanti o censurati}
-Le seguenti strategie sono state sperimentate per la gestione dei valori NA:
+Gestione dei valori NA
 \begin{itemize}
-\item Eliminazione dei valori NA.
-\item Utilizzo del valore medio.
-\item Generazione casuale da una distribuzione normale.
+\item Eliminazione dei valori NA
+\item Utilizzo del valore medio
+\item Generazione casuale da una distribuzione normale
 \end{itemize}
 \vspace{0.4cm}
-Le seguenti tecniche elementari sono state considerate per la gestione dei valori di \textit{Survival time} censurati verso destra:
+Gestione dei valori censurati verso destra
 \begin{itemize}
-\item Eliminazione dei valori censurati.
-\item Utilizzo del massimo valore non censurato.
+\item Eliminazione dei valori censurati
+\item Utilizzo del massimo valore non censurato
 \end{itemize}
 \end{frame}
 
@@ -193,8 +193,8 @@ Le seguenti tecniche elementari sono state considerate per la gestione dei valor
 \begin{frame}
 \frametitle{Trasformazione, filtraggio ed engineering di feature}
 \begin{itemize}
-\item I dati sono scalati con opportuni feature scaler e opzionalmente filtrati per eliminare outlier (LOF).
-\item Possono essere aggiunte nuove feature (un $\Delta$ temporale \textit{Therapy to visit}) e possono essere identificati e rimossi subset di feature altamente correlate.
+\item I dati sono scalati con opportuni feature scaler e opzionalmente filtrati per eliminare outlier (LOF)
+\item Possono essere aggiunte nuove feature (un $\Delta$ temporale \textit{Therapy to visit}) e possono essere identificati e rimossi subset di feature altamente correlate
 \end{itemize}
 \begin{figure}[h]
   \centering
@@ -242,7 +242,7 @@ Le seguenti tecniche elementari sono state considerate per la gestione dei valor
 {\nologo
 \begin{frame}
 \frametitle{SVCR ed SVRC}
-Modifiche alla ``loss function'' del modello SVR proposte specificamente per gestire dataset censurati:
+Modifiche alla ``loss function'' del modello SVR proposte specificamente per gestire dataset censurati
 \begin{figure}[h]
   	\centering
   	\vspace{-0.5cm}
@@ -260,12 +260,11 @@ Modifiche alla ``loss function'' del modello SVR proposte specificamente per ges
 
 \begin{frame}
 \frametitle{Modelli alternativi basati sul ranking}
-Un approccio differente è quello di riformulare il problema di predizione dei tempi di sopravvivenza come un problema di ranking.\\
-Ciò ci permette di introdurre altri modelli:
+Riformulazione della predizione dei tempi di sopravvivenza come problema di ranking
 \begin{itemize}
-\item \textbf{RankSVMC}, che penalizza ogni paio di punti comparabile per cui l'ordine di predizione è scorretto.
-\item \textit{Van Belle et al.} \textbf{Model 1}, una semplificazione di RankSVMC.
-\item \textit{Van Belle et al.} \textbf{Model 2}, una combinazione del precedente Model 1 e di SVCR.
+\item \textbf{RankSVMC}, che penalizza ogni paio di punti comparabile per cui l'ordine di predizione è scorretto
+\item \textit{Van Belle et al.} \textbf{Model 1}, una semplificazione di RankSVMC
+\item \textit{Van Belle et al.} \textbf{Model 2}, una combinazione del precedente Model 1 e di SVCR
 \end{itemize}
 \end{frame}
 
@@ -275,17 +274,17 @@ Ciò ci permette di introdurre altri modelli:
 \begin{frame}
 \frametitle{Tecnologie utilizzate}
 \begin{itemize}
-\item Il codice è stato scritto in python, usando le librerie \texttt{numpy}, \texttt{pandas} e \texttt{scikit-learn}.
-\item I controlli sul dataset, le esplorazioni e gli esperimenti sono stati condotti con i \texttt{jupyter} notebook, producendo le figure con \texttt{matplotlib} e \texttt{seaborn}.
-\item I modelli SVR alternativi sono stati implementati nel modulo python \texttt{customsvr}.
-\item Per costruire e risolvere i modelli è stato usato il framework di ottimizzazione Gurobi, tramite la python API \texttt{gurobipy}.
+\item Il codice è stato scritto in python, usando le librerie \texttt{numpy}, \texttt{pandas} e \texttt{scikit-learn}
+\item I controlli sul dataset, le esplorazioni e gli esperimenti sono stati condotti con i \texttt{jupyter} notebook, producendo le figure con \texttt{matplotlib} e \texttt{seaborn}
+\item I modelli SVR alternativi sono stati implementati nel modulo python \texttt{customsvr}
+\item Per costruire e risolvere i modelli è stato usato il framework di ottimizzazione Gurobi, tramite la python API \texttt{gurobipy}
 \end{itemize}
 \end{frame}
 
 {\nologo
 \begin{frame}
 \frametitle{Il modulo \texttt{customsvr}}
-Comparazione tra la SVR standard di scikit-learn e \texttt{customsvr}.
+Confronto tra la SVR standard di scikit-learn e \texttt{customsvr}
 \begin{figure}[h]
   	\centering
   	\vspace{-0.5cm}
@@ -308,7 +307,7 @@ Comparazione tra la SVR standard di scikit-learn e \texttt{customsvr}.
 {\nologo
 \begin{frame}
 \frametitle{Primi esperimenti su SVR}
-{\scriptsize Risultati degli esperimenti su SVR standard con holdout ripetuto, massimizzando $R^2$.}
+{\scriptsize Risultati degli esperimenti su SVR standard con holdout ripetuto, massimizzando $R^2$}
 \begin{scriptsize}
 \begin{center}
 \vspace{-0.45cm}
@@ -332,7 +331,7 @@ Removing \textit{IP Gravity}, \textit{FS \%}, \textit{ESVI}, \textit{Allo diast}
 
 \begin{frame}
 \frametitle{Esperimenti su modelli alternativi}
-Risultati degli esperimenti su modelli SVR alternativi con holdout ripetuto, massimizzando c-index.
+Risultati degli esperimenti su modelli SVR alternativi con holdout ripetuto, massimizzando c-index
 \begin{footnotesize}
 \begin{center}
 \newcolumntype{g}{>{\columncolor{yellow!40}}c}
